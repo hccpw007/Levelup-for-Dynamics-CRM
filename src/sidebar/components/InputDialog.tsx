@@ -123,8 +123,10 @@ const InputDialog = ({
           if (typeof option === 'string') return option;
           return `${option.displayName} (${option.logicalName})`;
         }}
-        value={entities.find(e => e.logicalName === entityName) || null}
+        // 输入值完全由用户输入决定：输入文字匹配到实体逻辑名时也不替换为下拉选项
+        value={entityName}
         onChange={(event, newValue) => {
+          // 从下拉列表显式点选时取选项的逻辑名，自由输入时保留原文
           if (typeof newValue === 'string') {
             onEntityNameChange(newValue);
           } else {
@@ -133,6 +135,9 @@ const InputDialog = ({
         }}
         loading={entitiesLoading}
         freeSolo
+        // 关闭自动高亮与失焦自动选中：只有用户显式点选下拉项才会采用某个实体
+        autoHighlight={false}
+        autoSelect={false}
         onInputChange={(event, newInputValue) => {
           // Allow typing custom entity names
           if (event?.type === 'change') {

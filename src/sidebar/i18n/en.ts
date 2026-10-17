@@ -323,11 +323,6 @@ export const en = {
 
   // Popup
   'popup.openSidebar': 'Open Sidebar',
-  'popup.prompt.recordId': 'Enter the record ID (GUID):',
-  'popup.prompt.entityName':
-    'Enter the entity logical name for the record (e.g., account, contact, opportunity):',
-  'popup.prompt.entityLogicalName':
-    'Enter the entity logical name (e.g., account, contact, opportunity):',
 
   // Action labels and tooltips
   'action.form:show-logical-names.label': 'Logical Names',

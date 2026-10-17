@@ -19,7 +19,11 @@ import { ThemeProvider } from '#contexts/ThemeContext';
 import { LanguageProvider, useLanguage } from '#contexts/LanguageContext';
 import { formActions, navigationActions, ActionConfig, localizeActions } from '#config/actions';
 import UserInfoDialog from '#components/UserInfoDialog';
+import InputDialog from '#components/InputDialog';
 import { Language } from '../sidebar/i18n';
+
+// 需要用户输入参数后再执行的动作类型
+type NavigationDialogType = 'open-by-id' | 'new-record' | 'open-list';
 
 const PopupApp: React.FC = () => {
   const { language, setLanguage, t } = useLanguage();
@@ -40,6 +44,11 @@ const PopupApp: React.FC = () => {
   }>(null);
   const [userInfoOpen, setUserInfoOpen] = useState(false);
   const [userInfo, setUserInfo] = useState<CurrentUserInfo | null>(null);
+  // 导航类动作的输入弹窗状态（与侧边栏一致的自定义弹窗，替代浏览器原生 prompt）
+  const [inputDialogOpen, setInputDialogOpen] = useState(false);
+  const [dialogType, setDialogType] = useState<NavigationDialogType>('open-by-id');
+  const [entityName, setEntityName] = useState('');
+  const [recordId, setRecordId] = useState('');
 
   // Detect if running in Firefox
   const isFirefox =
@@ -73,28 +82,10 @@ const PopupApp: React.FC = () => {
     window.setTimeout(() => setInlineToast(null), 4000);
   };
 
-  const handleActionClick = async (actionId: DynamicsAction) => {
+  // 向当前标签页的内容脚本发送动作请求
+  const executeAction = async (actionId: DynamicsAction, actionData?: unknown) => {
     try {
       console.log('Executing action:', actionId);
-
-      // Handle actions that require input with simple prompts
-      let actionData: unknown = undefined;
-
-      if (actionId === 'navigation:open-record-by-id') {
-        const recordId = prompt(t('popup.prompt.recordId'));
-        if (!recordId) return; // User cancelled
-        const entityName = prompt(t('popup.prompt.entityName'));
-        if (!entityName) return; // User cancelled
-        actionData = { recordId: recordId.trim(), entityName: entityName.trim().toLowerCase() };
-      } else if (actionId === 'navigation:new-record') {
-        const entityName = prompt(t('popup.prompt.entityLogicalName'));
-        if (!entityName) return; // User cancelled
-        actionData = { entityName: entityName.trim().toLowerCase() };
-      } else if (actionId === 'navigation:open-list') {
-        const entityName = prompt(t('popup.prompt.entityLogicalName'));
-        if (!entityName) return; // User cancelled
-        actionData = { entityName: entityName.trim().toLowerCase() };
-      }
 
       const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
       if (!tab?.id) {
@@ -143,6 +134,62 @@ const PopupApp: React.FC = () => {
     } catch (error) {
       console.error('Error executing action:', error);
     }
+  };
+
+  const handleActionClick = async (actionId: DynamicsAction) => {
+    // 需要输入参数的动作先打开输入弹窗，参数由弹窗提交后携带
+    if (actionId === 'navigation:open-record-by-id') {
+      setDialogType('open-by-id');
+      setInputDialogOpen(true);
+      return;
+    }
+    if (actionId === 'navigation:new-record') {
+      setDialogType('new-record');
+      setInputDialogOpen(true);
+      return;
+    }
+    if (actionId === 'navigation:open-list') {
+      setDialogType('open-list');
+      setInputDialogOpen(true);
+      return;
+    }
+
+    await executeAction(actionId);
+  };
+
+  // 输入弹窗提交：按弹窗类型组装参数并执行对应导航动作
+  const handleDialogSubmit = async () => {
+    const entity = entityName.trim();
+    if (!entity) return;
+
+    let action: DynamicsAction;
+    let data: Record<string, string>;
+    switch (dialogType) {
+      case 'open-by-id': {
+        const id = recordId.trim();
+        if (!id) return;
+        action = 'navigation:open-record-by-id';
+        data = { entityName: entity, recordId: id };
+        break;
+      }
+      case 'new-record':
+        action = 'navigation:new-record';
+        data = { entityName: entity };
+        break;
+      case 'open-list':
+        action = 'navigation:open-list';
+        data = { entityName: entity };
+        break;
+    }
+
+    setInputDialogOpen(false);
+    await executeAction(action, data);
+  };
+
+  const handleDialogCancel = () => {
+    setInputDialogOpen(false);
+    setEntityName('');
+    setRecordId('');
   };
 
   // 打开浏览器侧边栏，沿用当前已保存的显示模式
@@ -467,6 +514,24 @@ const PopupApp: React.FC = () => {
           </Box>
         )}
       </Box>
+      {/* 导航动作参数输入弹窗（复用侧边栏同款组件） */}
+      <InputDialog
+        open={inputDialogOpen}
+        onClose={handleDialogCancel}
+        onSubmit={handleDialogSubmit}
+        title={
+          dialogType === 'open-by-id'
+            ? t('sidebar.dialog.openById')
+            : dialogType === 'new-record'
+              ? t('sidebar.dialog.newRecord')
+              : t('sidebar.dialog.openList')
+        }
+        type={dialogType}
+        entityName={entityName}
+        recordId={recordId}
+        onEntityNameChange={setEntityName}
+        onRecordIdChange={setRecordId}
+      />
       <UserInfoDialog
         open={userInfoOpen}
         onClose={() => setUserInfoOpen(false)}
