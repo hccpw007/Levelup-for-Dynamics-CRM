@@ -135,6 +135,8 @@ const InputDialog = ({
         }}
         loading={entitiesLoading}
         freeSolo
+        // 提高实体下拉列表默认 40vh 的高度上限，在弹窗内可展示更多实体选项
+        ListboxProps={{ sx: { maxHeight: 280 } }}
         // 关闭自动高亮与失焦自动选中：只有用户显式点选下拉项才会采用某个实体
         autoHighlight={false}
         autoSelect={false}
@@ -212,7 +214,14 @@ const InputDialog = ({
   };
 
   return (
-    <Dialog open={open} onClose={onClose} maxWidth='sm' fullWidth>
+    // 弹窗贴顶展示，为实体下拉列表预留向下的展开空间（popup 视口高度有限）
+    <Dialog
+      open={open}
+      onClose={onClose}
+      maxWidth='sm'
+      fullWidth
+      sx={{ '& .MuiDialog-container': { alignItems: 'flex-start', pt: 3 } }}
+    >
       <DialogTitle>{title}</DialogTitle>
       <DialogContent>
         <Box sx={{ pt: 1 }}>{renderFields()}</Box>
