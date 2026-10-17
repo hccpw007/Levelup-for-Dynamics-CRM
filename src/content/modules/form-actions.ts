@@ -116,7 +116,9 @@ export class FormActions {
             solutionId: defaultSolution.solutionid,
             solutionFriendlyName: defaultSolution.friendlyname,
             usedDefaultSolution: true,
-            notificationMessage: `No custom preferred solution found. Using ${preferredSolution?.friendlyname ?? defaultSolution.friendlyname}. You can set your preferred solution in Power Platform Maker Portal.`,
+            notificationMessage: dialogText('form.defaultSolutionNotice', {
+              solution: preferredSolution?.friendlyname ?? defaultSolution.friendlyname,
+            }),
           };
         }
       } catch (defaultError) {
@@ -127,10 +129,11 @@ export class FormActions {
       // Ultimate fallback with hardcoded Default solution ID
       return {
         solutionId: 'fd140aaf-4df4-11dd-bd17-0019b9312238',
-        solutionFriendlyName: 'Default Solution',
+        solutionFriendlyName: dialogText('form.defaultSolutionFallbackName'),
         usedDefaultSolution: true,
-        notificationMessage:
-          'No custom preferred solution found. Using Default solution. You can set your preferred solution in Power Platform Maker Portal.',
+        notificationMessage: dialogText('form.defaultSolutionNotice', {
+          solution: dialogText('form.defaultSolutionFallbackName'),
+        }),
       };
     }
   }
@@ -266,7 +269,7 @@ export class FormActions {
       }
     } catch (_error) {
       // If XML parsing fails, fall back to the attribute-level change detection
-      DynamicsUtils.showToast('Unable to parse data XML, falling back to attribute checks', 'info');
+      DynamicsUtils.showToast(dialogText('form.parseXmlFallback'), 'info');
       // Fallback to the old method if XML parsing fails
       const attributes = xrm.Page.data.entity.attributes.get();
       attributes.forEach((attr: Xrm.Attributes.Attribute) => {
@@ -327,7 +330,7 @@ export class FormActions {
     const recordUrl = `${orgUrl}/main.aspx?etn=${entityName}&id=${recordId}&pagetype=entityrecord`;
 
     // Show in a text dialog with copy functionality
-    DynamicsUtils.showTextDialog('Record URL', recordUrl);
+    DynamicsUtils.showTextDialog(dialogText('form.recordUrlTitle'), recordUrl);
     return recordUrl;
   }
 
@@ -337,7 +340,7 @@ export class FormActions {
   getRecordId(): string {
     const xrm = this.getXrm();
     const recordId = xrm.Page.data.entity.getId().replace(/[{}]/g, '');
-    DynamicsUtils.showTextDialog('Record ID', recordId);
+    DynamicsUtils.showTextDialog(dialogText('form.recordIdTitle'), recordId);
     return recordId;
   }
 
@@ -401,7 +404,7 @@ export class FormActions {
     const tables = optionsetData.map(control => {
       const rows = control.options
         ? control.options.map((option: OptionSetOption) => [
-            option.text || 'N/A',
+            option.text || dialogText('form.notAvailable'),
             option.value === null ||
             option.value === undefined ||
             Number.isNaN(option.value) ||
@@ -493,8 +496,8 @@ export class FormActions {
       }
     });
     Xrm.Navigation.openAlertDialog({
-      title: 'Information',
-      text: 'Form refreshed without save. Autosave turned off.',
+      title: dialogText('common.information'),
+      text: dialogText('form.refreshWithoutSave'),
     });
     return 'Form refreshed with auto-save disabled';
   }
@@ -536,16 +539,17 @@ export class FormActions {
           let displayValue = '';
 
           if (value === null || value === undefined) {
-            displayValue = '[NULL]';
+            displayValue = dialogText('allFields.nullValue');
           } else if (value === '') {
-            displayValue = '[EMPTY STRING]';
+            displayValue = dialogText('allFields.emptyString');
           } else if (value instanceof Date) {
             // Handle Date objects
             displayValue = value.toISOString();
           } else if (typeof value === 'object') {
             // Handle other objects but avoid double quotes for simple values
             if (Array.isArray(value)) {
-              displayValue = value.length === 0 ? '[empty array]' : value.join(', ');
+              displayValue =
+                value.length === 0 ? dialogText('allFields.emptyArray') : value.join(', ');
             } else {
               // For objects, check if it's a simple value wrapped in quotes
               const stringified = JSON.stringify(value);
@@ -573,7 +577,7 @@ export class FormActions {
           // Add all fields regardless of value
           rows.push([key, fieldNote, displayValue]);
         } catch (e) {
-          rows.push([key, '', '[Error reading value]']);
+          rows.push([key, '', dialogText('allFields.errorReadingValue')]);
         }
       });
 
@@ -605,7 +609,7 @@ export class FormActions {
 
       return `Displayed ${rows.length} field(s) from Web API`;
     } catch (error) {
-      DynamicsUtils.showToast('Error retrieving fields via Web API', 'error');
+      DynamicsUtils.showToast(dialogText('allFields.retrieveError'), 'error');
       return 'Failed to retrieve fields via Web API';
     }
   }
@@ -652,7 +656,10 @@ export class FormActions {
       return successMessage;
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
-      DynamicsUtils.showToast(`Failed to open form editor: ${errorMessage}`, 'error');
+      DynamicsUtils.showToast(
+        dialogText('form.openEditorFailed', { error: errorMessage }),
+        'error'
+      );
       throw new Error(`Failed to open form editor: ${errorMessage}`);
     }
   }
@@ -712,32 +719,38 @@ export class FormActions {
       // Define process type configurations with their respective URL patterns
       const processTypes = [
         {
-          title: 'Realtime Workflows',
+          title: dialogText('form.processRealtimeWorkflows'),
+          statusMode: 'workflow',
           filter: (w: WorkflowProcess) => w.category === 0 && w.type === 1 && w.mode === 1,
           urlType: 'classicworkflow', // Uses classic Dynamics URL
         },
         {
-          title: 'Background Workflows',
+          title: dialogText('form.processBackgroundWorkflows'),
+          statusMode: 'workflow',
           filter: (w: WorkflowProcess) => w.category === 0 && w.type === 1 && w.mode === 0,
           urlType: 'classicworkflow', // Uses classic Dynamics URLv
         },
         {
-          title: 'Flows',
+          title: dialogText('form.processFlows'),
+          statusMode: 'default',
           filter: (w: WorkflowProcess) => w.category === 5 && w.type === 1,
           urlType: 'flow', // Modern flows use Power Automate portal
         },
         {
-          title: 'Business Rules',
+          title: dialogText('form.processBusinessRules'),
+          statusMode: 'businessRule',
           filter: (w: WorkflowProcess) => w.category === 2,
           urlType: 'businessrule',
         },
         {
-          title: 'Business Process Flows',
+          title: dialogText('form.processBusinessProcessFlows'),
+          statusMode: 'default',
           filter: (w: WorkflowProcess) => w.category === 4,
           urlType: 'classicworkflow', // Uses classic Dynamics URL
         },
         {
-          title: 'Actions',
+          title: dialogText('form.processActions'),
+          statusMode: 'default',
           filter: (w: WorkflowProcess) => w.category === 3,
           urlType: 'classicworkflow', // Uses classic Dynamics URL
         },
@@ -752,8 +765,8 @@ export class FormActions {
         totalProcesses += processes.length;
 
         const rows = processes.map((process: WorkflowProcess) => {
-          const name = process.name || 'N/A';
-          const description = process.description || 'No description';
+          const name = process.name || dialogText('form.notAvailable');
+          const description = process.description || dialogText('form.noDescription');
 
           // Generate the correct URL based on process type
           let makerUrl: string;
@@ -774,26 +787,31 @@ export class FormActions {
 
           // Format status based on process type
           let status = '';
-          if (
-            processType.title === 'Realtime Workflows' ||
-            processType.title === 'Background Workflows'
-          ) {
+          if (processType.statusMode === 'workflow') {
             status = process.statecode_Formatted;
-          } else if (processType.title === 'Business Rules') {
+          } else if (processType.statusMode === 'businessRule') {
             status = `${process.statecode_Formatted} (${process.scope_Formatted})`;
           } else {
             status = process.statuscode_Formatted;
           }
 
-          const owner = process._ownerid_value_Formatted || 'N/A';
+          const owner = process._ownerid_value_Formatted || dialogText('form.notAvailable');
 
           return [nameWithLink, description, status, owner];
         });
 
         tables.push({
           title: processType.title,
-          description: `${processes.length} ${processType.title.toLowerCase()} found`,
-          headers: ['Name', 'Description', 'Status', 'Owner'],
+          description: dialogText('form.processesFound', {
+            count: processes.length,
+            category: processType.title,
+          }),
+          headers: [
+            dialogText('form.processNameHeader'),
+            dialogText('form.processDescriptionHeader'),
+            dialogText('form.processStatusHeader'),
+            dialogText('form.processOwnerHeader'),
+          ],
           rows,
           allowHtmlInColumns: [0], // Allow HTML in the Name column
         });
@@ -803,8 +821,8 @@ export class FormActions {
       totalProcesses += allCustomApis.length;
       const customApiRows = await Promise.all(
         allCustomApis.map(async (api: CustomApiProcess) => {
-          const name = api.uniquename || api.displayname || 'N/A';
-          const description = api.description || 'No description';
+          const name = api.uniquename || api.displayname || dialogText('form.notAvailable');
+          const description = api.description || dialogText('form.noDescription');
 
           // Custom APIs use classic Dynamics URL pattern
           const orgUrl = DynamicsUtils.getOrganizationUrl();
@@ -812,17 +830,27 @@ export class FormActions {
           const makerUrl = `${orgUrl}/main.aspx?appid=${appProperties.appId}&forceUCI=1&newWindow=true&pagetype=entityrecord&etn=customapi&id=${api.customapiid}`;
           const nameWithLink = `<a href="${makerUrl}" target="_blank" style="color: #2563eb; text-decoration: none; font-weight: 500;">${name}</a>`;
 
-          const status = `Active (${api.bindingtype === 1 ? 'Entity' : 'Global'})`;
-          const owner = api._ownerid_value_Formatted || 'N/A';
+          const status = dialogText(
+            api.bindingtype === 1 ? 'form.activeEntity' : 'form.activeGlobal'
+          );
+          const owner = api._ownerid_value_Formatted || dialogText('form.notAvailable');
 
           return [nameWithLink, description, status, owner];
         })
       );
 
       tables.push({
-        title: 'Custom APIs',
-        description: `${allCustomApis.length} custom apis found`,
-        headers: ['Name', 'Description', 'Status', 'Owner'],
+        title: dialogText('form.processCustomApis'),
+        description: dialogText('form.processesFound', {
+          count: allCustomApis.length,
+          category: dialogText('form.processCustomApis'),
+        }),
+        headers: [
+          dialogText('form.processNameHeader'),
+          dialogText('form.processDescriptionHeader'),
+          dialogText('form.processStatusHeader'),
+          dialogText('form.processOwnerHeader'),
+        ],
         rows: customApiRows,
         allowHtmlInColumns: [0], // Allow HTML in the Name column
       });
@@ -830,8 +858,8 @@ export class FormActions {
       // If no processes were found at all, show a friendly alert and return
       if (totalProcesses === 0) {
         Xrm.Navigation.openAlertDialog({
-          title: 'No processes found',
-          text: `No workflows, business rules, flows, BPFs, actions, or custom APIs were found for ${entityName}.`,
+          title: dialogText('form.noProcessesTitle'),
+          text: dialogText('form.noProcessesText', { entity: entityName }),
         });
 
         return `No processes associated with ${entityName}`;
@@ -840,7 +868,10 @@ export class FormActions {
       // Use dual-pane layout for better navigation
       DynamicsUtils.createMuiPopup({
         id: 'levelup-table-processes-popup',
-        title: `Table Processes for ${entityName} (${totalProcesses} total)`,
+        title: dialogText('form.processesTitle', {
+          entity: entityName,
+          count: totalProcesses,
+        }),
         tables,
         layoutMode: 'dual-pane',
         showOpenInNewTab: true,
@@ -850,7 +881,10 @@ export class FormActions {
       return `Found ${totalProcesses} processes across ${tables.length} categories for ${entityName}. Click any process name to open in Power Apps maker portal (${solutionInfo.solutionFriendlyName}).`;
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
-      DynamicsUtils.showToast(`Failed to load table processes: ${errorMessage}`, 'error');
+      DynamicsUtils.showToast(
+        dialogText('form.loadProcessesFailed', { error: errorMessage }),
+        'error'
+      );
       throw new Error(`Failed to load table processes: ${errorMessage}`);
     }
   }

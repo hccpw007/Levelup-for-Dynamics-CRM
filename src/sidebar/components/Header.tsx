@@ -2,6 +2,7 @@ import React from 'react';
 import { AppBar, Toolbar, IconButton, Tooltip, Box } from '@mui/material';
 import { LightMode as LightModeIcon, DarkMode as DarkModeIcon } from '@mui/icons-material';
 import { useTheme } from '#contexts/ThemeContext';
+import { useLanguage } from '#contexts/LanguageContext';
 import DisplayModeSelector from './DisplayModeSelector';
 import { ExtensionDisplayMode } from '#types/global';
 
@@ -12,6 +13,8 @@ interface HeaderProps {
 
 const HeaderComponent: React.FC<HeaderProps> = ({ displayMode, onDisplayModeChange }) => {
   const { toggleTheme, isDarkMode } = useTheme();
+  const { t } = useLanguage();
+  const themeToggleLabel = t(isDarkMode ? 'header.switchToLight' : 'header.switchToDark');
 
   return (
     <AppBar
@@ -26,11 +29,11 @@ const HeaderComponent: React.FC<HeaderProps> = ({ displayMode, onDisplayModeChan
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
           <DisplayModeSelector currentMode={displayMode} onModeChange={onDisplayModeChange} />
 
-          <Tooltip title={`Switch to ${isDarkMode ? 'light' : 'dark'} mode`}>
+          <Tooltip title={themeToggleLabel}>
             <IconButton
               onClick={toggleTheme}
               size='small'
-              aria-label={`Switch to ${isDarkMode ? 'light' : 'dark'} mode`}
+              aria-label={themeToggleLabel}
               sx={{
                 color: 'text.primary',
                 '&:hover': {
@@ -50,4 +53,3 @@ const HeaderComponent: React.FC<HeaderProps> = ({ displayMode, onDisplayModeChan
 const Header = React.memo(HeaderComponent);
 
 export default Header;
-

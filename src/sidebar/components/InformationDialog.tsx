@@ -325,14 +325,14 @@ const InformationDialog: React.FC<InformationDialogProps> = ({ open, onClose }) 
                 }}
               >
                 <Chip
-                  label='🇮🇳 India'
+                  label={`🇮🇳 ${t('info.countryIndia')}`}
                   variant='outlined'
                   size='small'
                   sx={{ fontSize: '0.75rem' }}
                 />
                 <Typography variant='body1'>🤝</Typography>
                 <Chip
-                  label='🇦🇺 Australia'
+                  label={`🇦🇺 ${t('info.countryAustralia')}`}
                   variant='outlined'
                   size='small'
                   sx={{ fontSize: '0.75rem' }}

@@ -780,7 +780,7 @@ export class TableDialog {
             type="text"
             class="levelup-table-search-input"
             id="${searchId}"
-            placeholder="Search..."
+            placeholder="${dialogText('common.searchPlaceholder')}"
             data-table-id="${tableId}"
           />
           <button class="levelup-table-search-clear hidden" data-search-id="${searchId}">×</button>
@@ -934,6 +934,9 @@ export class TableDialog {
   }
 
   private static getSearchScript(): string {
+    // 新标签页脚本独立运行，需在生成时把当前语言的文案嵌入脚本
+    const searchResultsTemplate = JSON.stringify(dialogText('common.searchResults'));
+
     return `
         // Search functionality for new tab
         window.addEventListener('DOMContentLoaded', () => {
@@ -974,7 +977,10 @@ export class TableDialog {
 
                     clearButton.classList.remove('hidden');
                     resultsDiv.style.display = 'block';
-                    resultsDiv.textContent = visibleCount + ' of ' + allRows.length + ' fields match "' + searchInput.value + '"';
+                    resultsDiv.textContent = ${searchResultsTemplate}
+                        .split('{visible}').join(String(visibleCount))
+                        .split('{total}').join(String(allRows.length))
+                        .split('{query}').join(searchInput.value);
                 };
 
                 const clearSearch = () => {
@@ -1441,7 +1447,11 @@ export class TableDialog {
         // Update UI
         clearButton.classList.remove('hidden');
         resultsDiv.style.display = 'block';
-        resultsDiv.textContent = `${visibleCount} of ${allRows.length} fields match "${searchInput.value}"`;
+        resultsDiv.textContent = dialogText('common.searchResults', {
+          visible: visibleCount,
+          total: allRows.length,
+          query: searchInput.value,
+        });
       };
 
       const clearSearch = () => {

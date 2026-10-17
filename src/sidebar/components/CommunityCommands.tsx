@@ -37,6 +37,7 @@ import {
   CloudDownload as InstallIcon,
 } from '@mui/icons-material';
 import { githubApiService } from '#services/GitHubApiService';
+import { useLanguage } from '#contexts/LanguageContext';
 import { CustomCommandsService } from '#services/CustomCommandsService';
 
 interface CommunityCommand {
@@ -61,6 +62,7 @@ interface CommunityCommandsProps {
 }
 
 const CommunityCommands: React.FC<CommunityCommandsProps> = ({ onToast }) => {
+  const { t } = useLanguage();
   const [commands, setCommands] = useState<CommunityCommand[]>([]);
   const [loading, setLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -72,17 +74,23 @@ const CommunityCommands: React.FC<CommunityCommandsProps> = ({ onToast }) => {
   const [installing, setInstalling] = useState<string | null>(null);
 
   const categories = [
-    'form-actions',
-    'navigation-actions',
-    'admin-actions',
-    'debugging-actions',
-    'view-actions',
-    'data-manipulation',
-    'reporting',
-    'automation',
-    'utilities',
-    'miscellaneous',
-  ];
+    { value: 'form-actions', labelKey: 'community.categoryFormActions' },
+    { value: 'navigation-actions', labelKey: 'community.categoryNavigationActions' },
+    { value: 'admin-actions', labelKey: 'community.categoryAdminActions' },
+    { value: 'debugging-actions', labelKey: 'community.categoryDebuggingActions' },
+    { value: 'view-actions', labelKey: 'community.categoryViewActions' },
+    { value: 'data-manipulation', labelKey: 'community.categoryDataManipulation' },
+    { value: 'reporting', labelKey: 'community.categoryReporting' },
+    { value: 'automation', labelKey: 'community.categoryAutomation' },
+    { value: 'utilities', labelKey: 'community.categoryUtilities' },
+    { value: 'miscellaneous', labelKey: 'community.categoryMiscellaneous' },
+  ] as const;
+
+  // 将分类 slug 转换为当前语言的显示名，未知分类保留原值
+  const getCategoryLabel = (category?: string): string => {
+    const matched = categories.find(item => item.value === category);
+    return matched ? t(matched.labelKey) : category || t('community.uncategorized');
+  };
 
   // Load community commands on mount
   useEffect(() => {
@@ -102,13 +110,13 @@ const CommunityCommands: React.FC<CommunityCommandsProps> = ({ onToast }) => {
         }));
 
         setCommands(processedCommands);
-        onToast(`Found ${processedCommands.length} community commands`, 'info');
+        onToast(t('community.found', { count: processedCommands.length }), 'info');
       } else {
-        onToast(`Failed to load community commands: ${result.error}`, 'error');
+        onToast(t('community.loadFailed', { error: String(result.error) }), 'error');
       }
     } catch (error) {
       console.error('Failed to load community commands:', error);
-      onToast('Failed to connect to community repository', 'error');
+      onToast(t('community.connectFailed'), 'error');
     } finally {
       setLoading(false);
     }
@@ -125,7 +133,7 @@ const CommunityCommands: React.FC<CommunityCommandsProps> = ({ onToast }) => {
       name: command.title.replace('New Command: ', ''),
       category: categoryLabel ? categoryLabel.replace('category:', '') : 'miscellaneous',
       tags: tagLabels.map((tag: string) => tag.replace('tag:', '')),
-      description: 'Community contributed command',
+      description: t('community.contributedCommand'),
     };
   };
 
@@ -147,10 +155,10 @@ const CommunityCommands: React.FC<CommunityCommandsProps> = ({ onToast }) => {
 
         setCommands(processedCommands);
       } else {
-        onToast(`Search failed: ${result.error}`, 'error');
+        onToast(t('community.searchFailed', { error: String(result.error) }), 'error');
       }
     } catch (error) {
-      onToast('Search failed', 'error');
+      onToast(t('community.searchFailedShort'), 'error');
     } finally {
       setLoading(false);
     }
@@ -169,7 +177,7 @@ const CommunityCommands: React.FC<CommunityCommandsProps> = ({ onToast }) => {
 
   const handleInstallCommand = async (command: CommunityCommand) => {
     if (!command.metadata?.name) {
-      onToast('Cannot install command: missing metadata', 'error');
+      onToast(t('community.missingMetadata'), 'error');
       return;
     }
 
@@ -182,7 +190,7 @@ const CommunityCommands: React.FC<CommunityCommandsProps> = ({ onToast }) => {
 
       const commandData = {
         name: command.metadata.name,
-        description: command.metadata.description || 'Community command',
+        description: command.metadata.description || t('community.contributedCommand'),
         category: command.metadata.category,
         tags: command.metadata.tags || [],
         code: `// Community command: ${command.metadata.name}
@@ -208,10 +216,10 @@ ${command.metadata.name.replace(/\s+/g, '')}();`,
       };
 
       const newCommand = await CustomCommandsService.createCommand(commandData);
-      onToast(`Command "${command.metadata.name}" installed successfully!`, 'success');
+      onToast(t('community.installSuccess', { name: command.metadata.name }), 'success');
     } catch (error) {
       console.error('Failed to install command:', error);
-      onToast('Failed to install command', 'error');
+      onToast(t('community.installFailed'), 'error');
     } finally {
       setInstalling(null);
     }
@@ -224,9 +232,9 @@ ${command.metadata.name.replace(/\s+/g, '')}();`,
           <Box display='flex' justifyContent='space-between' alignItems='center' mb={2}>
             <Typography variant='h6' sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
               <GitHubIcon />
-              Community Commands
+              {t('community.title')}
             </Typography>
-            <Tooltip title='Refresh Commands'>
+            <Tooltip title={t('community.refresh')}>
               <IconButton onClick={loadCommunityCommands} disabled={loading} size='small'>
                 <RefreshIcon />
               </IconButton>
@@ -238,7 +246,7 @@ ${command.metadata.name.replace(/\s+/g, '')}();`,
             <TextField
               fullWidth
               size='small'
-              placeholder='Search community commands...'
+              placeholder={t('community.searchPlaceholder')}
               value={searchQuery}
               onChange={e => setSearchQuery(e.target.value)}
               onKeyPress={e => e.key === 'Enter' && handleSearch()}
@@ -251,7 +259,7 @@ ${command.metadata.name.replace(/\s+/g, '')}();`,
                 endAdornment: (
                   <InputAdornment position='end'>
                     <Button onClick={handleSearch} size='small' disabled={loading}>
-                      Search
+                      {t('community.search')}
                     </Button>
                   </InputAdornment>
                 ),
@@ -262,20 +270,17 @@ ${command.metadata.name.replace(/\s+/g, '')}();`,
             {/* Category Filter */}
             <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
               <Chip
-                label='All Categories'
+                label={t('community.allCategories')}
                 variant={selectedCategory === '' ? 'filled' : 'outlined'}
                 onClick={() => setSelectedCategory('')}
                 size='small'
               />
               {categories.map(category => (
                 <Chip
-                  key={category}
-                  label={category
-                    .split('-')
-                    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-                    .join(' ')}
-                  variant={selectedCategory === category ? 'filled' : 'outlined'}
-                  onClick={() => setSelectedCategory(category)}
+                  key={category.value}
+                  label={t(category.labelKey)}
+                  variant={selectedCategory === category.value ? 'filled' : 'outlined'}
+                  onClick={() => setSelectedCategory(category.value)}
                   size='small'
                 />
               ))}
@@ -289,9 +294,7 @@ ${command.metadata.name.replace(/\s+/g, '')}();`,
             </Box>
           ) : commands.length === 0 ? (
             <Alert severity='info'>
-              <Typography variant='body2'>
-                No community commands found. Make sure GitHub integration is configured correctly.
-              </Typography>
+              <Typography variant='body2'>{t('community.empty')}</Typography>
             </Alert>
           ) : (
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
@@ -307,7 +310,7 @@ ${command.metadata.name.replace(/\s+/g, '')}();`,
                       >
                         <Chip
                           icon={<CategoryIcon />}
-                          label={command.metadata?.category || 'uncategorized'}
+                          label={getCategoryLabel(command.metadata?.category)}
                           size='small'
                           variant='outlined'
                         />
@@ -329,7 +332,7 @@ ${command.metadata.name.replace(/\s+/g, '')}();`,
                   <AccordionDetails>
                     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
                       <Typography variant='body2' color='text.secondary'>
-                        {command.metadata?.description || 'No description available'}
+                        {command.metadata?.description || t('community.noDescription')}
                       </Typography>
 
                       {command.metadata?.tags && command.metadata.tags.length > 0 && (
@@ -339,7 +342,7 @@ ${command.metadata.name.replace(/\s+/g, '')}();`,
                             sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mb: 0.5 }}
                           >
                             <TagIcon fontSize='small' />
-                            Tags:
+                            {t('community.tags')}
                           </Typography>
                           <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
                             {command.metadata.tags.map(tag => (
@@ -356,7 +359,7 @@ ${command.metadata.name.replace(/\s+/g, '')}();`,
                           startIcon={<CodeIcon />}
                           onClick={() => handlePreviewCommand(command)}
                         >
-                          Preview
+                          {t('community.preview')}
                         </Button>
                         <Button
                           size='small'
@@ -371,7 +374,9 @@ ${command.metadata.name.replace(/\s+/g, '')}();`,
                           onClick={() => handleInstallCommand(command)}
                           disabled={installing === command.url}
                         >
-                          {installing === command.url ? 'Installing...' : 'Install'}
+                          {installing === command.url
+                            ? t('community.installing')
+                            : t('community.install')}
                         </Button>
                         <Button
                           size='small'
@@ -381,7 +386,7 @@ ${command.metadata.name.replace(/\s+/g, '')}();`,
                           target='_blank'
                           rel='noopener noreferrer'
                         >
-                          View on GitHub
+                          {t('community.viewOnGitHub')}
                         </Button>
                       </Box>
                     </Box>
@@ -400,25 +405,26 @@ ${command.metadata.name.replace(/\s+/g, '')}();`,
         maxWidth='md'
         fullWidth
       >
-        <DialogTitle>Command Preview: {previewDialog.command?.metadata?.name}</DialogTitle>
+        <DialogTitle>
+          {t('community.previewTitle', { name: previewDialog.command?.metadata?.name ?? '' })}
+        </DialogTitle>
         <DialogContent>
           <Alert severity='info' sx={{ mb: 2 }}>
-            <Typography variant='body2'>
-              This is a preview of the community command. The actual implementation would be loaded
-              from the GitHub issue content.
-            </Typography>
+            <Typography variant='body2'>{t('community.previewNotice')}</Typography>
           </Alert>
 
           {previewDialog.command && (
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
               <Typography variant='body2'>
-                <strong>Description:</strong> {previewDialog.command.metadata?.description}
+                <strong>{t('community.fieldDescription')}</strong>{' '}
+                {previewDialog.command.metadata?.description}
               </Typography>
               <Typography variant='body2'>
-                <strong>Category:</strong> {previewDialog.command.metadata?.category}
+                <strong>{t('community.fieldCategory')}</strong>{' '}
+                {getCategoryLabel(previewDialog.command.metadata?.category)}
               </Typography>
               <Typography variant='body2'>
-                <strong>Author:</strong> {previewDialog.command.author}
+                <strong>{t('community.fieldAuthor')}</strong> {previewDialog.command.author}
               </Typography>
 
               <Link
@@ -428,14 +434,16 @@ ${command.metadata.name.replace(/\s+/g, '')}();`,
                 sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}
               >
                 <GitHubIcon fontSize='small' />
-                View full details on GitHub
+                {t('community.viewDetails')}
                 <LaunchIcon fontSize='small' />
               </Link>
             </Box>
           )}
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setPreviewDialog({ open: false, command: null })}>Close</Button>
+          <Button onClick={() => setPreviewDialog({ open: false, command: null })}>
+            {t('common.close')}
+          </Button>
           {previewDialog.command && (
             <Button
               variant='contained'
@@ -445,7 +453,7 @@ ${command.metadata.name.replace(/\s+/g, '')}();`,
                 setPreviewDialog({ open: false, command: null });
               }}
             >
-              Install Command
+              {t('community.installCommand')}
             </Button>
           )}
         </DialogActions>

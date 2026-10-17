@@ -26,12 +26,14 @@ import {
   Launch as LaunchIcon,
 } from '@mui/icons-material';
 import { githubApiService } from '#services/GitHubApiService';
+import { useLanguage } from '#contexts/LanguageContext';
 
 interface GitHubIntegrationSettingsProps {
   onToast: (message: string, severity: 'success' | 'info' | 'warning' | 'error') => void;
 }
 
 const GitHubIntegrationSettings: React.FC<GitHubIntegrationSettingsProps> = ({ onToast }) => {
+  const { t } = useLanguage();
   const [config, setConfig] = useState({
     owner: '',
     repo: '',
@@ -76,10 +78,10 @@ const GitHubIntegrationSettings: React.FC<GitHubIntegrationSettingsProps> = ({ o
 
       // Update the service configuration
       githubApiService.configure(config);
-      onToast('GitHub configuration saved successfully', 'success');
+      onToast(t('github.configSaved'), 'success');
     } catch (error) {
       console.error('Failed to save GitHub configuration:', error);
-      onToast('Failed to save configuration', 'error');
+      onToast(t('github.configSaveFailed'), 'error');
     }
   };
 
@@ -104,7 +106,7 @@ const GitHubIntegrationSettings: React.FC<GitHubIntegrationSettingsProps> = ({ o
           repoInfo: repoResult.success ? repoResult.data : null,
         });
 
-        onToast('GitHub connection successful!', 'success');
+        onToast(t('github.connectionSuccess'), 'success');
       } else {
         setConnectionStatus({
           tested: true,
@@ -112,16 +114,16 @@ const GitHubIntegrationSettings: React.FC<GitHubIntegrationSettingsProps> = ({ o
           error: connectionResult.error,
         });
 
-        onToast(`Connection failed: ${connectionResult.error}`, 'error');
+        onToast(t('github.connectionFailed', { error: String(connectionResult.error) }), 'error');
       }
     } catch (error) {
       setConnectionStatus({
         tested: true,
         success: false,
-        error: error instanceof Error ? error.message : 'Unknown error',
+        error: error instanceof Error ? error.message : t('sidebar.unknownError'),
       });
 
-      onToast('Connection test failed', 'error');
+      onToast(t('github.connectionTestFailed'), 'error');
     } finally {
       setTesting(false);
     }
@@ -142,34 +144,30 @@ const GitHubIntegrationSettings: React.FC<GitHubIntegrationSettingsProps> = ({ o
       <CardContent>
         <Box display='flex' alignItems='center' mb={2}>
           <GitHubIcon sx={{ mr: 1 }} />
-          <Typography variant='h6'>GitHub Integration</Typography>
+          <Typography variant='h6'>{t('github.title')}</Typography>
         </Box>
 
         <Alert severity='info' sx={{ mb: 2 }}>
-          <Typography variant='body2'>
-            Configure GitHub integration to share your custom commands with the Level Up community.
-            Commands are shared by opening a pre-filled GitHub Issue form in your browser - no
-            authentication required!
-          </Typography>
+          <Typography variant='body2'>{t('github.intro')}</Typography>
         </Alert>
 
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
           <TextField
-            label='Repository Owner'
+            label={t('github.ownerLabel')}
             value={config.owner}
             onChange={e => handleConfigChange('owner', e.target.value)}
-            placeholder='yourusername'
-            helperText='GitHub username or organization name'
+            placeholder={t('github.ownerPlaceholder')}
+            helperText={t('github.ownerHelper')}
             size='small'
             required
           />
 
           <TextField
-            label='Repository Name'
+            label={t('github.repoLabel')}
             value={config.repo}
             onChange={e => handleConfigChange('repo', e.target.value)}
-            placeholder='level-up-community-commands'
-            helperText='Name of the community commands repository'
+            placeholder={t('github.repoPlaceholder')}
+            helperText={t('github.repoHelper')}
             size='small'
             required
           />
@@ -178,7 +176,7 @@ const GitHubIntegrationSettings: React.FC<GitHubIntegrationSettingsProps> = ({ o
             control={
               <Switch checked={showAdvanced} onChange={e => setShowAdvanced(e.target.checked)} />
             }
-            label='Show advanced options'
+            label={t('github.showAdvanced')}
           />
 
           {showAdvanced && (
@@ -186,9 +184,7 @@ const GitHubIntegrationSettings: React.FC<GitHubIntegrationSettingsProps> = ({ o
               <Divider />
               <Alert severity='info' sx={{ mt: 1 }}>
                 <Typography variant='body2'>
-                  <strong>No Authentication Required:</strong> Commands are shared by opening a
-                  pre-filled GitHub Issue form in your browser. No Personal Access Tokens or
-                  authentication needed!
+                  <strong>{t('github.noAuthTitle')}</strong> {t('github.noAuthText')}
                 </Typography>
               </Alert>
             </>
@@ -204,7 +200,7 @@ const GitHubIntegrationSettings: React.FC<GitHubIntegrationSettingsProps> = ({ o
             disabled={!isConfigValid}
             size='small'
           >
-            Save Configuration
+            {t('github.save')}
           </Button>
 
           <Button
@@ -214,13 +210,13 @@ const GitHubIntegrationSettings: React.FC<GitHubIntegrationSettingsProps> = ({ o
             startIcon={testing ? <CircularProgress size={16} /> : <RefreshIcon />}
             size='small'
           >
-            {testing ? 'Testing...' : 'Test Connection'}
+            {testing ? t('github.testing') : t('github.testConnection')}
           </Button>
 
           {connectionStatus.tested && (
             <Chip
               icon={connectionStatus.success ? <CheckIcon /> : <ErrorIcon />}
-              label={connectionStatus.success ? 'Connected' : 'Failed'}
+              label={connectionStatus.success ? t('github.connected') : t('github.failed')}
               color={connectionStatus.success ? 'success' : 'error'}
               size='small'
             />
@@ -230,7 +226,7 @@ const GitHubIntegrationSettings: React.FC<GitHubIntegrationSettingsProps> = ({ o
         {connectionStatus.tested && !connectionStatus.success && connectionStatus.error && (
           <Alert severity='error' sx={{ mt: 2 }}>
             <Typography variant='body2'>
-              <strong>Connection Error:</strong> {connectionStatus.error}
+              <strong>{t('github.connectionError')}</strong> {connectionStatus.error}
             </Typography>
           </Alert>
         )}
@@ -239,18 +235,25 @@ const GitHubIntegrationSettings: React.FC<GitHubIntegrationSettingsProps> = ({ o
           <Alert severity='success' sx={{ mt: 2 }}>
             <Box>
               <Typography variant='body2' gutterBottom>
-                <strong>Repository Information:</strong>
+                <strong>{t('github.repoInfo')}</strong>
               </Typography>
               <Box
                 sx={{ display: 'flex', flexDirection: 'column', gap: 0.5, fontSize: '0.875rem' }}
               >
-                <Box>Name: {connectionStatus.repoInfo.name}</Box>
-                <Box>Description: {connectionStatus.repoInfo.description || 'No description'}</Box>
                 <Box>
-                  Stars: {connectionStatus.repoInfo.stars} | Forks:{' '}
-                  {connectionStatus.repoInfo.forks}
+                  {t('github.name')} {connectionStatus.repoInfo.name}
                 </Box>
-                <Box>Open Issues: {connectionStatus.repoInfo.openIssues}</Box>
+                <Box>
+                  {t('github.description')}{' '}
+                  {connectionStatus.repoInfo.description || t('common.noDescription')}
+                </Box>
+                <Box>
+                  {t('github.starsForks', {
+                    stars: connectionStatus.repoInfo.stars,
+                    forks: connectionStatus.repoInfo.forks,
+                  })}
+                </Box>
+                <Box>{t('github.openIssues', { count: connectionStatus.repoInfo.openIssues })}</Box>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mt: 1 }}>
                   <Link
                     href={connectionStatus.repoInfo.url}
@@ -258,7 +261,7 @@ const GitHubIntegrationSettings: React.FC<GitHubIntegrationSettingsProps> = ({ o
                     rel='noopener noreferrer'
                     sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}
                   >
-                    View Repository
+                    {t('github.viewRepo')}
                     <LaunchIcon fontSize='small' />
                   </Link>
                 </Box>
@@ -272,17 +275,14 @@ const GitHubIntegrationSettings: React.FC<GitHubIntegrationSettingsProps> = ({ o
         <Box>
           <Typography variant='body2' color='text.secondary' gutterBottom>
             <InfoIcon sx={{ fontSize: 16, mr: 0.5, verticalAlign: 'middle' }} />
-            How it works:
+            {t('github.howItWorks')}
           </Typography>
           <Typography variant='body2' color='text.secondary' component='div'>
             <ul style={{ margin: 0, paddingLeft: '1.5rem' }}>
-              <li>Click "Share Command" to open a pre-filled GitHub Issue form in your browser</li>
-              <li>
-                Review the generated content and submit the issue (GitHub account required for
-                submission)
-              </li>
-              <li>Community members can review, test, and provide feedback on your command</li>
-              <li>Approved commands are added to the official collection for everyone to use</li>
+              <li>{t('github.howStep1')}</li>
+              <li>{t('github.howStep2')}</li>
+              <li>{t('github.howStep3')}</li>
+              <li>{t('github.howStep4')}</li>
             </ul>
           </Typography>
         </Box>

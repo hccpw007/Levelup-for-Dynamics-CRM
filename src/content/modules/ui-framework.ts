@@ -1,6 +1,7 @@
 // UI Framework for Level Up extension - Modern lightweight approach
 
 import { TableDialog } from './table-dialog';
+import { dialogText } from './dialog-i18n';
 
 export interface ComponentConfig {
   id?: string;
@@ -81,8 +82,8 @@ export class UIFramework {
       title: config.title,
       tables: [
         {
-          title: 'Content',
-          headers: ['Information'],
+          title: dialogText('common.content'),
+          headers: [dialogText('common.information')],
           rows: [[config.content]],
         },
       ],

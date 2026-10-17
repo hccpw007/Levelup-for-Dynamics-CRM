@@ -3,6 +3,7 @@
 /// <reference types="xrm" />
 
 import { TableDialog } from './table-dialog';
+import { dialogText } from './dialog-i18n';
 import { EntityMetadataCache } from '#types/global';
 
 export interface NavigationConfig {
@@ -123,8 +124,8 @@ export class DynamicsUtils {
       title,
       tables: [
         {
-          title: copyable ? 'Content (Click to copy)' : 'Content',
-          headers: ['Information'],
+          title: dialogText(copyable ? 'common.contentClickToCopy' : 'common.content'),
+          headers: [dialogText('common.information')],
           rows: [[content]],
         },
       ],
@@ -184,7 +185,7 @@ export class DynamicsUtils {
               border-radius: 4px;
               transition: all 0.2s ease;
               line-height: 1;
-            " aria-label="Close dialog">×</button>
+            " aria-label="${dialogText('common.closeDialog')}">×</button>
           </div>
           <div class="levelup-dialog-content" style="
             padding: 24px;
@@ -218,7 +219,7 @@ export class DynamicsUtils {
                 font-size: 13px;
                 min-width: 80px;
                 height: 40px;
-              ">Copy</button>
+              ">${dialogText('common.copy')}</button>
             </div>
           </div>
         </div>
@@ -247,20 +248,20 @@ export class DynamicsUtils {
     copyButton?.addEventListener('click', async () => {
       try {
         await navigator.clipboard.writeText(content);
-        copyButton.textContent = 'Copied!';
+        copyButton.textContent = dialogText('common.copied');
         copyButton.style.background = '#10b981';
         setTimeout(() => {
-          copyButton.textContent = 'Copy';
+          copyButton.textContent = dialogText('common.copy');
           copyButton.style.background = '#2563eb';
         }, 2000);
       } catch (error) {
         // Fallback for older browsers
         textInput?.select();
         document.execCommand('copy');
-        copyButton.textContent = 'Copied!';
+        copyButton.textContent = dialogText('common.copied');
         copyButton.style.background = '#10b981';
         setTimeout(() => {
-          copyButton.textContent = 'Copy';
+          copyButton.textContent = dialogText('common.copy');
           copyButton.style.background = '#2563eb';
         }, 2000);
       }
@@ -522,7 +523,7 @@ export class DynamicsUtils {
           .replace(/\s+/g, ' ')
           .trim();
         clickableSpan.textContent = `${logicalName}`;
-        clickableSpan.title = 'Click to copy logical name to clipboard';
+        clickableSpan.title = dialogText('common.copyLogicalNameTooltip');
 
         // Add hover and active states
         clickableSpan.addEventListener('mouseenter', () => {
@@ -570,7 +571,7 @@ export class DynamicsUtils {
 
             // Create a temporary notification element for better visibility
             const notification = document.createElement('div');
-            notification.textContent = '✓ Copied!';
+            notification.textContent = `✓ ${dialogText('common.copied')}`;
             notification.style.cssText = `
               position: fixed;
               top: 20px;
@@ -590,7 +591,7 @@ export class DynamicsUtils {
             const originalText = clickableSpan.textContent;
             const originalStyle = clickableSpan.style.cssText;
 
-            clickableSpan.textContent = '✓ Copied!';
+            clickableSpan.textContent = `✓ ${dialogText('common.copied')}`;
             clickableSpan.style.backgroundColor = '#107c10 !important';
             clickableSpan.style.color = '#ffffff !important';
             clickableSpan.style.fontWeight = 'bold !important';
@@ -608,7 +609,7 @@ export class DynamicsUtils {
 
             // Create a temporary error notification
             const notification = document.createElement('div');
-            notification.textContent = '✗ Copy Failed';
+            notification.textContent = `✗ ${dialogText('common.copyFailed')}`;
             notification.style.cssText = `
               position: fixed;
               top: 20px;
@@ -628,7 +629,7 @@ export class DynamicsUtils {
             const originalText = clickableSpan.textContent;
             const originalStyle = clickableSpan.style.cssText;
 
-            clickableSpan.textContent = '✗ Failed';
+            clickableSpan.textContent = `✗ ${dialogText('common.failed')}`;
             clickableSpan.style.backgroundColor = '#d83b01 !important';
             clickableSpan.style.color = '#ffffff !important';
             clickableSpan.style.fontWeight = 'bold !important';

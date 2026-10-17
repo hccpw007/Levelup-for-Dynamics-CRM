@@ -224,30 +224,44 @@ chrome.action.onClicked.addListener(async tab => {
 console.log('🎯 [Background] Extension icon click will open sidebar directly');
 
 // Add context menu as alternative way to open sidebar
-try {
+const createContextMenu = async (): Promise<void> => {
+  const stored = await chrome.storage.local.get(['levelup-language']);
+  const title =
+    stored['levelup-language'] === 'zh' ? '打开 Level Up 侧边栏' : 'Open Level Up Sidebar';
+
   // Remove existing context menu items first to prevent duplicates
   chrome.contextMenus.removeAll(() => {
     chrome.contextMenus.create({
       id: 'levelup-open',
-      title: 'Open Level Up Sidebar',
+      title,
       contexts: ['page'],
     });
   });
+};
 
-  chrome.contextMenus.onClicked.addListener(async (info, tab) => {
-    if (info.menuItemId === 'levelup-open' && tab?.id) {
-      try {
-        await chrome.sidePanel.open({ tabId: tab.id });
-        console.log('🔍 [ContextMenu] Opened sidebar via context menu');
-      } catch (error) {
-        console.log('🔍 [ContextMenu] Failed to open sidebar:', error);
-      }
+createContextMenu().catch(error => {
+  console.error('❌ [Background] Failed to register context menu:', error);
+});
+
+// 扩展语言变化时同步刷新右键菜单文案
+chrome.storage.onChanged.addListener((changes, areaName) => {
+  if (areaName === 'local' && changes['levelup-language']) {
+    createContextMenu().catch(error => {
+      console.error('❌ [Background] Failed to update context menu:', error);
+    });
+  }
+});
+
+chrome.contextMenus.onClicked.addListener(async (info, tab) => {
+  if (info.menuItemId === 'levelup-open' && tab?.id) {
+    try {
+      await chrome.sidePanel.open({ tabId: tab.id });
+      console.log('🔍 [ContextMenu] Opened sidebar via context menu');
+    } catch (error) {
+      console.log('🔍 [ContextMenu] Failed to open sidebar:', error);
     }
-  });
-  console.log('✅ [Background] Context menu fallback registered');
-} catch (contextMenuError) {
-  console.error('❌ [Background] Failed to register context menu:', contextMenuError);
-}
+  }
+});
 
 // Track tabs where user explicitly closed the side panel to avoid auto-reopen
 const userClosedPanelTabs = new Set<number>();
