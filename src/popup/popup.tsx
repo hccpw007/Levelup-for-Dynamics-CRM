@@ -161,8 +161,7 @@ const PopupApp: React.FC = () => {
   return (
     <Box
       sx={{
-        width: '320px',
-        maxWidth: '320px',
+        width: '100%',
         background: theme =>
           `linear-gradient(135deg, ${theme.palette.background.default} 0%, ${theme.palette.background.paper} 100%)`,
         borderRadius: '8px',
