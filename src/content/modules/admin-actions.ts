@@ -2,6 +2,7 @@
 
 /// <reference types="xrm" />
 
+import { CurrentUserInfo } from '#types/global';
 import { WebApiClient } from './webapi-client';
 
 interface ImpersonationUser {
@@ -55,16 +56,33 @@ export class AdminActions {
   /**
    * Get current user information
    */
-  static getCurrentUserInfo(): Record<string, unknown> {
+  static getCurrentUserInfo(): CurrentUserInfo {
     try {
       const globalContext = Xrm.Utility.getGlobalContext();
       const userSettings = globalContext.userSettings;
 
-      const userInfo = {
+      const rolesCollection = userSettings.roles as
+        | Xrm.Collection.ItemCollection<Xrm.LookupValue>
+        | undefined;
+
+      // userSettings.securityRoles only contains role IDs, so collect role
+      // display names separately for a readable result in the UI
+      const roles: string[] = [];
+      if (rolesCollection) {
+        for (let i = 0; i < rolesCollection.getLength(); i++) {
+          const roleName = rolesCollection.get(i).name;
+          if (roleName) {
+            roles.push(roleName);
+          }
+        }
+      }
+
+      const userInfo: CurrentUserInfo = {
         userId: userSettings.userId,
         userName: userSettings.userName,
         languageId: userSettings.languageId,
-        securityRoles: userSettings.securityRoles,
+        roles,
+        securityRoles: userSettings.securityRoles as string[],
         defaultDashboardId: userSettings.defaultDashboardId,
       };
 

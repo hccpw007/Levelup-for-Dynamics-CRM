@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { createRoot } from 'react-dom/client';
 import { Box, IconButton, Tooltip } from '@mui/material';
 import { GitHub, Forum } from '@mui/icons-material';
-import { DynamicsAction, ExtensionDisplayMode } from '#types/global';
+import { CurrentUserInfo, DynamicsAction, ExtensionDisplayMode } from '#types/global';
 import { messageService } from '#services/MessageService';
 import { ExtensionConfigService, ExtensionConfig } from '#services/ExtensionConfigService';
 import { ThemeProvider } from '#contexts/ThemeContext';
@@ -23,6 +23,7 @@ import MyCommands from '#components/MyCommands';
 import RecentlyUsed from '#components/RecentlyUsed';
 import InformationButton from '#components/InformationButton';
 import LanguageSelector from '#components/LanguageSelector';
+import UserInfoDialog from '#components/UserInfoDialog';
 
 const App: React.FC = () => {
   const { t } = useLanguage();
@@ -50,6 +51,8 @@ const App: React.FC = () => {
   );
   const [favoriteIds, setFavoriteIds] = useState<DynamicsAction[]>([]);
   const [environmentUrl, setEnvironmentUrl] = useState<string>('');
+  const [userInfoOpen, setUserInfoOpen] = useState(false);
+  const [userInfo, setUserInfo] = useState<CurrentUserInfo | null>(null);
 
   // Function to show inline alert for critical messages
   const showInlineAlert = (
@@ -259,6 +262,12 @@ const App: React.FC = () => {
     setLoadingOpen(true);
     try {
       const response = await messageService.sendMessage(id);
+      // 用户信息动作返回数据后弹出详情对话框；后台转发会把内容脚本响应再包一层 data
+      if (response.success && id === 'admin:get-user-info') {
+        const payload = response.data as { data?: CurrentUserInfo } | undefined;
+        setUserInfo(payload?.data ?? (response.data as CurrentUserInfo));
+        setUserInfoOpen(true);
+      }
       if (!response.success) {
         setToastMessage(
           t('sidebar.actionFailed', { error: response.error || t('sidebar.unknownError') })
@@ -316,7 +325,9 @@ const App: React.FC = () => {
           break;
       }
 
-      const response = await messageService.sendMessage(action as DynamicsAction, data);
+      // Navigation actions must reach the content script directly: the background relay
+      // drops the user gesture activation and the opened tab stays in the background.
+      const response = await messageService.sendMessageToActiveTab(action as DynamicsAction, data);
       if (response.success) {
         let successMessage = '';
         switch (dialogType) {
@@ -519,6 +530,11 @@ const App: React.FC = () => {
         recordId={recordId}
         onEntityNameChange={setEntityName}
         onRecordIdChange={setRecordId}
+      />
+      <UserInfoDialog
+        open={userInfoOpen}
+        onClose={() => setUserInfoOpen(false)}
+        userInfo={userInfo}
       />
       <LoadingOverlay open={loadingOpen} />
       <Toast

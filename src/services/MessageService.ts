@@ -87,6 +87,45 @@ export class MessageService {
   }
 
   /**
+   * Send a request directly to the content script of the active tab, bypassing the background.
+   * Navigation actions must use this path: relaying through the background service worker
+   * loses the user gesture activation, so tabs opened by Xrm.Navigation.openUrl are pushed
+   * to the background by the browser and the page appears not to open.
+   */
+  public async sendMessageToActiveTab(
+    action: DynamicsAction,
+    data?: unknown
+  ): Promise<MessageResponse> {
+    const requestId = `req_${++this.requestId}_${Date.now()}`;
+
+    const message: MessageRequest = {
+      type: 'LEVELUP_REQUEST',
+      action,
+      data,
+      requestId,
+    };
+
+    try {
+      const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+      if (!tab?.id) {
+        return { success: false, error: 'No active tab found', requestId };
+      }
+
+      const response = (await chrome.tabs.sendMessage(tab.id, message)) as MessageResponse;
+
+      return response || { success: false, error: 'No response received', requestId };
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      console.error(`❌ [MessageService] Direct active tab message error: ${action}`, {
+        requestId,
+        error: errorMessage,
+      });
+
+      return { success: false, error: errorMessage, requestId };
+    }
+  }
+
+  /**
    * Send a message with typed response data
    */
   public async sendMessageTyped<T>(action: DynamicsAction, data?: unknown): Promise<T> {

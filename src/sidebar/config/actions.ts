@@ -37,6 +37,7 @@ import {
   Edit as EditIcon,
   Build as BuildIcon,
   MonitorHeart as MonitorIcon,
+  AccountCircle as UserIcon,
 } from '@mui/icons-material';
 
 export interface ActionConfig {
@@ -391,5 +392,14 @@ export const navigationActions: ActionConfig[] = [
     category: 'advanced',
     shortLabel: 'Pin',
     shortIcon: '📌',
+  },
+  {
+    id: 'admin:get-user-info',
+    label: 'User Info',
+    icon: UserIcon,
+    tooltip: 'View current user ID, name and security roles',
+    category: 'common',
+    shortLabel: 'User Info',
+    shortIcon: '👤',
   },
 ];

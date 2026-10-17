@@ -11,16 +11,14 @@ import {
   MenuItem,
   Button,
 } from '@mui/material';
-import {
-  Translate as TranslateIcon,
-  ViewSidebar as ViewSidebarIcon,
-} from '@mui/icons-material';
+import { Translate as TranslateIcon, ViewSidebar as ViewSidebarIcon } from '@mui/icons-material';
 import { ExtensionConfigService, ExtensionConfig } from '#services/ExtensionConfigService';
 import { checkDynamicsViaXrm, getEnvironmentUrlFromXrm } from '#utils/dynamicsDetection';
-import { DynamicsAction } from '#types/global';
+import { CurrentUserInfo, DynamicsAction } from '#types/global';
 import { ThemeProvider } from '#contexts/ThemeContext';
 import { LanguageProvider, useLanguage } from '#contexts/LanguageContext';
 import { formActions, navigationActions, ActionConfig, localizeActions } from '#config/actions';
+import UserInfoDialog from '#components/UserInfoDialog';
 import { Language } from '../sidebar/i18n';
 
 const PopupApp: React.FC = () => {
@@ -40,6 +38,8 @@ const PopupApp: React.FC = () => {
     message: string;
     severity: 'success' | 'info' | 'warning' | 'error';
   }>(null);
+  const [userInfoOpen, setUserInfoOpen] = useState(false);
+  const [userInfo, setUserInfo] = useState<CurrentUserInfo | null>(null);
 
   // Detect if running in Firefox
   const isFirefox =
@@ -120,6 +120,11 @@ const PopupApp: React.FC = () => {
             console.log('Action response:', response);
             if (response?.success) {
               console.log(`✅ Action executed successfully: ${actionId}`);
+              // 用户信息动作返回数据后弹出详情对话框
+              if (actionId === 'admin:get-user-info') {
+                setUserInfo(response.data as CurrentUserInfo);
+                setUserInfoOpen(true);
+              }
             } else {
               console.error('❌ Action failed:', response?.error || 'Unknown error');
               // Show inline toast for the common form-only error so the popup UX is clear
@@ -461,8 +466,12 @@ const PopupApp: React.FC = () => {
             </Box>
           </Box>
         )}
-
       </Box>
+      <UserInfoDialog
+        open={userInfoOpen}
+        onClose={() => setUserInfoOpen(false)}
+        userInfo={userInfo}
+      />
     </Box>
   );
 };

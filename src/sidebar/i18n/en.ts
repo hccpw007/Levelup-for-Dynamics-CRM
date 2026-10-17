@@ -444,6 +444,17 @@ export const en = {
   'action.navigation:pin-to-side-panel.tooltip':
     'Pin the current page to the side navigation panel',
   'action.navigation:pin-to-side-panel.short': 'Pin',
+  // Current user info action shown in the sidebar and Express Mode
+  'action.admin:get-user-info.label': 'User Info',
+  'action.admin:get-user-info.tooltip': 'View current user ID, name and security roles',
+  'action.admin:get-user-info.short': 'User Info',
+  // Current user info dialog labels
+  'userInfo.title': 'Current User Info',
+  'userInfo.userId': 'User ID',
+  'userInfo.userName': 'User Name',
+  'userInfo.languageId': 'Language ID',
+  'userInfo.roles': 'Security Roles',
+  'userInfo.noRoles': 'No roles assigned',
 } as const;
 
 export type TranslationKey = keyof typeof en;

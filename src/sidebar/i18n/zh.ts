@@ -420,4 +420,15 @@ export const zh: Record<TranslationKey, string> = {
   'action.navigation:pin-to-side-panel.label': '固定到侧面板',
   'action.navigation:pin-to-side-panel.tooltip': '将当前页面固定到侧边导航面板',
   'action.navigation:pin-to-side-panel.short': '固定',
+  // 侧边栏与快速模式中的当前用户信息入口
+  'action.admin:get-user-info.label': '用户信息',
+  'action.admin:get-user-info.tooltip': '查看当前用户的 ID、姓名和安全角色',
+  'action.admin:get-user-info.short': '用户信息',
+  // 当前用户信息对话框字段
+  'userInfo.title': '当前用户信息',
+  'userInfo.userId': '用户 ID',
+  'userInfo.userName': '用户名',
+  'userInfo.languageId': '语言 ID',
+  'userInfo.roles': '安全角色',
+  'userInfo.noRoles': '未分配角色',
 };

@@ -121,6 +121,18 @@ export interface EnvironmentInfo {
     webResourceUrl: string;
 }
 
+// Current user information returned by the admin:get-user-info action
+export interface CurrentUserInfo {
+    userId: string;
+    userName: string;
+    languageId: number;
+    // Readable security role names for display
+    roles: string[];
+    // Security role IDs from the Xrm user settings
+    securityRoles: string[];
+    defaultDashboardId?: string;
+}
+
 export interface ImpersonationUser {
     systemuserid: string;
     azureactivedirectoryobjectid: string;
