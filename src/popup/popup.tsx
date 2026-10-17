@@ -9,11 +9,15 @@ import {
   CircularProgress,
   Select,
   MenuItem,
+  Button,
 } from '@mui/material';
-import { Translate as TranslateIcon } from '@mui/icons-material';
+import {
+  Translate as TranslateIcon,
+  ViewSidebar as ViewSidebarIcon,
+} from '@mui/icons-material';
 import { ExtensionConfigService, ExtensionConfig } from '#services/ExtensionConfigService';
 import { checkDynamicsViaXrm, getEnvironmentUrlFromXrm } from '#utils/dynamicsDetection';
-import { DynamicsAction, ExtensionDisplayMode } from '#types/global';
+import { DynamicsAction } from '#types/global';
 import { ThemeProvider } from '#contexts/ThemeContext';
 import { LanguageProvider, useLanguage } from '#contexts/LanguageContext';
 import { formActions, navigationActions, ActionConfig, localizeActions } from '#config/actions';
@@ -136,23 +140,19 @@ const PopupApp: React.FC = () => {
     }
   };
 
-  const switchDisplayModeAndOpenSidebar = async (mode: ExtensionDisplayMode) => {
+  // 打开浏览器侧边栏，沿用当前已保存的显示模式
+  const openSidebar = async () => {
     try {
-      console.log('Switching to display mode:', mode);
-      await ExtensionConfigService.setDisplayMode(mode);
-      console.log('Display mode updated successfully');
-
       const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-      if (tab?.id) {
-        console.log('Opening sidebar for tab:', tab.id);
-        await chrome.sidePanel.open({ tabId: tab.id });
-        // Only close popup when successfully opening sidebar
-        window.close();
-      } else {
-        console.error('No active tab found for sidebar opening');
+      if (!tab?.id) {
+        console.error('[Popup] 未找到活动标签页，无法打开侧边栏');
+        return;
       }
+      await chrome.sidePanel.open({ tabId: tab.id });
+      // 仅在侧边栏成功打开后关闭弹窗
+      window.close();
     } catch (error) {
-      console.error('Error switching display mode and opening sidebar:', error);
+      console.error('[Popup] 打开侧边栏失败:', error);
     }
   };
 
@@ -195,38 +195,64 @@ const PopupApp: React.FC = () => {
             <CircularProgress size={18} />
           </Box>
         )}
-        {/* Language selection */}
+        {/* 顶部工具栏：左侧打开侧边栏按钮，右侧语言切换 */}
         <Box
           sx={{
             display: 'flex',
             alignItems: 'center',
-            justifyContent: 'flex-end',
+            justifyContent: 'space-between',
             gap: 0.5,
             mb: 1,
           }}
         >
-          <TranslateIcon sx={{ fontSize: 16, color: 'text.secondary' }} />
-          <Select
-            size='small'
-            value={language}
-            onChange={e => setLanguage(e.target.value as Language)}
-            aria-label={t('language.label')}
-            sx={{
-              fontSize: '0.7rem',
-              height: 28,
-              minWidth: 90,
-              '& .MuiSelect-select': {
-                py: 0.5,
-              },
-            }}
-          >
-            <MenuItem value='en' sx={{ fontSize: '0.75rem' }}>
-              {t('language.english')}
-            </MenuItem>
-            <MenuItem value='zh' sx={{ fontSize: '0.75rem' }}>
-              {t('language.chinese')}
-            </MenuItem>
-          </Select>
+          {/* 打开浏览器侧边栏（Firefox 不支持 sidePanel API，不显示） */}
+          {!isFirefox && (
+            <Button
+              size='small'
+              variant='outlined'
+              startIcon={<ViewSidebarIcon />}
+              onClick={openSidebar}
+              sx={{
+                fontSize: '0.7rem',
+                height: 28,
+                py: 0,
+                px: 1,
+                textTransform: 'none',
+                borderRadius: '6px',
+                whiteSpace: 'nowrap',
+                '& .MuiButton-startIcon': { mr: 0.5, ml: 0 },
+              }}
+            >
+              {t('popup.openSidebar')}
+            </Button>
+          )}
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, ml: 'auto' }}>
+            <TranslateIcon sx={{ fontSize: 16, color: 'text.secondary' }} />
+            {/* 界面语言切换下拉框 */}
+            <Select
+              size='small'
+              value={language}
+              onChange={e => setLanguage(e.target.value as Language)}
+              aria-label={t('language.label')}
+              sx={{
+                fontSize: '0.7rem',
+                height: 28,
+                minWidth: 90,
+                '& .MuiSelect-select': {
+                  py: 0.5,
+                },
+              }}
+            >
+              {/* 英文界面 */}
+              <MenuItem value='en' sx={{ fontSize: '0.75rem' }}>
+                {t('language.english')}
+              </MenuItem>
+              {/* 简体中文界面 */}
+              <MenuItem value='zh' sx={{ fontSize: '0.75rem' }}>
+                {t('language.chinese')}
+              </MenuItem>
+            </Select>
+          </Box>
         </Box>
 
         {/* Form Actions */}
@@ -436,77 +462,6 @@ const PopupApp: React.FC = () => {
           </Box>
         )}
 
-        {/* Sidebar Modes at Bottom - Only show for non-Firefox browsers */}
-        {!isFirefox && (
-          <Box
-            sx={{
-              textAlign: 'center',
-              pt: 1,
-              mt: 0.5,
-              borderTop: theme => `1px solid ${theme.palette.divider}`,
-            }}
-          >
-            <Typography
-              variant='caption'
-              sx={{
-                color: 'text.secondary',
-                fontSize: '0.65rem',
-                display: 'block',
-                mb: 0.25,
-                textTransform: 'uppercase',
-                letterSpacing: '0.3px',
-                fontWeight: 500,
-              }}
-            >
-              {t('popup.sidebarModes')}
-            </Typography>
-            <Box sx={{ display: 'flex', justifyContent: 'center', gap: 1.5 }}>
-              <Link
-                component='button'
-                onClick={() => switchDisplayModeAndOpenSidebar('default')}
-                sx={{
-                  color: 'primary.main',
-                  fontSize: '0.7rem',
-                  textDecoration: 'none',
-                  background: 'none',
-                  border: 'none',
-                  cursor: 'pointer',
-                  padding: '2px 4px',
-                  fontWeight: 500,
-                  transition: 'color 0.2s ease',
-                  '&:hover': {
-                    color: 'primary.dark',
-                    textDecoration: 'underline',
-                  },
-                }}
-              >
-                {t('popup.default')}
-              </Link>
-              <Box sx={{ color: 'text.secondary', fontSize: '0.7rem' }}>•</Box>
-              <Link
-                component='button'
-                onClick={() => switchDisplayModeAndOpenSidebar('simple')}
-                sx={{
-                  color: 'primary.main',
-                  fontSize: '0.7rem',
-                  textDecoration: 'none',
-                  background: 'none',
-                  border: 'none',
-                  cursor: 'pointer',
-                  padding: '2px 4px',
-                  fontWeight: 500,
-                  transition: 'color 0.2s ease',
-                  '&:hover': {
-                    color: 'primary.dark',
-                    textDecoration: 'underline',
-                  },
-                }}
-              >
-                {t('popup.simple')}
-              </Link>
-            </Box>
-          </Box>
-        )}
       </Box>
     </Box>
   );

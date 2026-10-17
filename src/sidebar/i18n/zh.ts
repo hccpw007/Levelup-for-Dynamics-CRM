@@ -308,9 +308,7 @@ export const zh: Record<TranslationKey, string> = {
   'info.close': '关闭',
 
   // 弹窗
-  'popup.sidebarModes': '侧边栏模式',
-  'popup.default': '默认',
-  'popup.simple': '简洁',
+  'popup.openSidebar': '打开侧边栏',
   'popup.prompt.recordId': '请输入记录 ID（GUID）：',
   'popup.prompt.entityName': '请输入记录的实体逻辑名称（例如 account、contact、opportunity）：',
   'popup.prompt.entityLogicalName': '请输入实体逻辑名称（例如 account、contact、opportunity）：',

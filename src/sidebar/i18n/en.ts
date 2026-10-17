@@ -319,9 +319,7 @@ export const en = {
   'info.close': 'Close',
 
   // Popup
-  'popup.sidebarModes': 'Sidebar Modes',
-  'popup.default': 'Default',
-  'popup.simple': 'Simple',
+  'popup.openSidebar': 'Open Sidebar',
   'popup.prompt.recordId': 'Enter the record ID (GUID):',
   'popup.prompt.entityName':
     'Enter the entity logical name for the record (e.g., account, contact, opportunity):',
