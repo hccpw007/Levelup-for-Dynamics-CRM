@@ -5,6 +5,7 @@
 import { DynamicsUtils } from './utils';
 import { WebApiClient } from './webapi-client';
 import { ConfettiEffects } from './confetti-effects';
+import { dialogText } from './dialog-i18n';
 import { OptionSetData, OptionSetControl, OptionSetOption } from '#types/global';
 
 interface Solution {
@@ -386,12 +387,14 @@ export class FormActions {
         const optionsetControl = x as OptionSetControl;
         return {
           name: optionsetControl.getName(),
+          // 控件显示名称（业务字段名），用于弹窗标题与左侧导航
+          label: optionsetControl.getLabel() || undefined,
           options: optionsetControl.getOptions(),
         };
       });
 
     if (optionsetData.length === 0) {
-      return 'No option set controls found on this form';
+      return dialogText('optionset.noneFound');
     }
 
     // Create separate tables for each optionset
@@ -408,10 +411,14 @@ export class FormActions {
           ])
         : [];
 
+      // 标题与左侧导航同时展示字段标签和逻辑名，便于识别字段
+      const title = control.label ? `${control.label} (${control.name})` : control.name;
+      const description = dialogText('optionset.optionsAvailable', { count: rows.length });
+
       return {
-        title: `${control.name}`,
-        description: `${rows.length} option(s) available`,
-        headers: ['OptionSet Name', 'OptionSet Value'],
+        title,
+        description,
+        headers: [dialogText('optionset.nameHeader'), dialogText('optionset.valueHeader')],
         rows: rows,
       };
     });
@@ -422,13 +429,13 @@ export class FormActions {
     // Show popup with dual-pane layout for better navigation
     DynamicsUtils.createMuiPopup({
       id: 'levelup-optionset-popup',
-      title: `OptionSet Values (${optionsetData.length} controls)`,
+      title: dialogText('optionset.title', { count: optionsetData.length }),
       tables: tables,
       layoutMode: layoutMode,
       showOpenInNewTab: true,
     });
 
-    return `Found ${optionsetData.length} option set control(s)`;
+    return dialogText('optionset.found', { count: optionsetData.length });
   }
 
   /**

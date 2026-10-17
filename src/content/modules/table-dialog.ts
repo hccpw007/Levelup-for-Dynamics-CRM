@@ -3,6 +3,8 @@
  * Clean, maintainable solution for displaying data tables in dialogs
  */
 
+import { dialogText } from './dialog-i18n';
+
 export interface TableData {
   title: string;
   description?: string;
@@ -701,7 +703,7 @@ export class TableDialog {
             )
             .join('')
         : `<tr class="empty-row">
-             <td colspan="${table.headers.length}">No data available</td>
+             <td colspan="${table.headers.length}">${dialogText('common.noData')}</td>
            </tr>`;
 
     const tableHeaders = table.headers
@@ -759,7 +761,7 @@ export class TableDialog {
             )
             .join('')
         : `<tr class="empty-row">
-             <td colspan="${table.headers.length}">No data available</td>
+             <td colspan="${table.headers.length}">${dialogText('common.noData')}</td>
            </tr>`;
 
     const tableHeaders = table.headers
@@ -815,7 +817,7 @@ export class TableDialog {
 
       return `
         <div class="${navClass}">
-          <div class="levelup-table-nav-title">Quick Navigation</div>
+          <div class="levelup-table-nav-title">${dialogText('common.quickNavigation')}</div>
           <div class="levelup-table-nav-links">
             ${navLinks}
           </div>
@@ -1111,8 +1113,8 @@ export class TableDialog {
     let headerActions = '';
     if (options.showOpenInNewTab !== false) {
       headerActions += `
-        <button class="levelup-dialog-action-btn" data-action="open-new-tab" title="Open in new tab">
-          <span>↗</span> New Tab
+        <button class="levelup-dialog-action-btn" data-action="open-new-tab" title="${dialogText('common.openInNewTab')}">
+          <span>↗</span> ${dialogText('common.newTab')}
         </button>
       `;
     }
@@ -1129,7 +1131,7 @@ export class TableDialog {
             <span>${this.escapeHtml(options.title)}</span>
             <div class="levelup-dialog-header-actions">
               ${headerActions}
-              <button class="levelup-dialog-close" aria-label="Close dialog">×</button>
+              <button class="levelup-dialog-close" aria-label="${dialogText('common.closeDialog')}">×</button>
             </div>
           </div>
           <div class="${contentClasses.join(' ')}">

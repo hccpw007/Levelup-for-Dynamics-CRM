@@ -26,6 +26,7 @@ import {
 } from '#types/global';
 import { CustomCommand } from '#types/custom-commands';
 import { FormActions } from './modules/form-actions';
+import { setDialogLanguage } from './modules/dialog-i18n';
 import { NavigationActions } from './modules/navigation-actions';
 import { AdminActions } from './modules/admin-actions';
 import { DebuggingActions } from './modules/debugging-actions';
@@ -136,6 +137,9 @@ export class LevelUpExtension {
 
       this.setupMessageListener();
 
+      // 向 content script 查询扩展当前语言，用于弹窗文案
+      window.postMessage({ type: 'LEVELUP_GET_LANGUAGE' }, window.location.origin);
+
       // Proactively populate entity metadata cache on first load
       try {
         const cached = this.getCachedEntityMetadata();
@@ -235,6 +239,8 @@ export class LevelUpExtension {
         event.data.requestId
       ) {
         this.handleGetPageContext(event.data.requestId);
+      } else if (event.data && event.data.type === 'LEVELUP_SET_LANGUAGE') {
+        setDialogLanguage(event.data.language);
       }
     });
   }

@@ -174,6 +174,8 @@ export interface OptionSetControl extends Xrm.Controls.StandardControl {
 
 export interface OptionSetData {
     name: string;
+    // Control display label (business field name)
+    label?: string;
     options: OptionSetOption[];
 }
 

@@ -51,6 +51,8 @@ class ContentScript {
   private async init(): Promise<void> {
     // Always setup message listener so sidebar can communicate
     this.setupMessageListener();
+    // 将扩展语言同步给页面注入脚本，供弹窗文案使用
+    this.setupLanguageSync();
     this.loadSessionKey();
 
     // Check if we're on a Dynamics 365 page
@@ -64,6 +66,45 @@ class ContentScript {
       console.debug(
         'Level Up: Not a Dynamics 365 page, content script available for sidebar communication only'
       );
+    }
+  }
+
+  /**
+   * 响应注入脚本的语言查询，并在扩展语言变化时主动推送。
+   */
+  private setupLanguageSync(): void {
+    window.addEventListener('message', event => {
+      if (event.source !== window) {
+        return;
+      }
+
+      if (event.data && event.data.type === 'LEVELUP_GET_LANGUAGE') {
+        this.sendLanguageToPage();
+      }
+    });
+
+    if (typeof chrome !== 'undefined' && chrome.storage?.onChanged) {
+      chrome.storage.onChanged.addListener((changes, areaName) => {
+        if (areaName === 'local' && changes['levelup-language']) {
+          window.postMessage(
+            { type: 'LEVELUP_SET_LANGUAGE', language: changes['levelup-language'].newValue },
+            window.location.origin
+          );
+        }
+      });
+    }
+  }
+
+  private async sendLanguageToPage(): Promise<void> {
+    try {
+      const result = await chrome.storage.local.get(['levelup-language']);
+      window.postMessage(
+        { type: 'LEVELUP_SET_LANGUAGE', language: result['levelup-language'] },
+        window.location.origin
+      );
+    } catch (error) {
+      // eslint-disable-next-line no-console
+      console.error('[ContentScript] Failed to read language setting:', error);
     }
   }
 
