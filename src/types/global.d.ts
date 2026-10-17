@@ -36,6 +36,7 @@ export type FormActionName =
     | 'table-processes'
 
 export type NavigationActionName =
+    | 'request-input'
     | 'open-record-by-id'
     | 'new-record'
     | 'open-list'

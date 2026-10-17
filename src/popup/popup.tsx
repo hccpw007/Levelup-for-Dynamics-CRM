@@ -19,7 +19,6 @@ import { ThemeProvider } from '#contexts/ThemeContext';
 import { LanguageProvider, useLanguage } from '#contexts/LanguageContext';
 import { formActions, navigationActions, ActionConfig, localizeActions } from '#config/actions';
 import UserInfoDialog from '#components/UserInfoDialog';
-import InputDialog from '#components/InputDialog';
 import UserRoleDialog from '#components/UserRoleDialog';
 import { UserToImpersonate } from '#hooks/useImpersonation';
 import { Language } from '../sidebar/i18n';
@@ -46,11 +45,6 @@ const PopupApp: React.FC = () => {
   }>(null);
   const [userInfoOpen, setUserInfoOpen] = useState(false);
   const [userInfo, setUserInfo] = useState<CurrentUserInfo | null>(null);
-  // 导航类动作的输入弹窗状态（与侧边栏一致的自定义弹窗，替代浏览器原生 prompt）
-  const [inputDialogOpen, setInputDialogOpen] = useState(false);
-  const [dialogType, setDialogType] = useState<NavigationDialogType>('open-by-id');
-  const [entityName, setEntityName] = useState('');
-  const [recordId, setRecordId] = useState('');
   const [userRoleDialogOpen, setUserRoleDialogOpen] = useState(false);
 
   // Detect if running in Firefox
@@ -148,21 +142,25 @@ const PopupApp: React.FC = () => {
     }
   };
 
+  // 请求内容脚本在页面内弹出输入对话框；popup 随即关闭，避免遮挡页面弹窗
+  const requestInputDialog = async (dialogType: NavigationDialogType) => {
+    await executeAction('navigation:request-input', { dialogType });
+    // 留出消息派发时间再关闭 popup
+    window.setTimeout(() => window.close(), 100);
+  };
+
   const handleActionClick = async (actionId: DynamicsAction) => {
-    // 需要输入参数的动作先打开输入弹窗，参数由弹窗提交后携带
+    // 需要输入参数的动作改由页面内弹窗收集（popup 窗口高度不足以展示完整实体下拉）
     if (actionId === 'navigation:open-record-by-id') {
-      setDialogType('open-by-id');
-      setInputDialogOpen(true);
+      await requestInputDialog('open-by-id');
       return;
     }
     if (actionId === 'navigation:new-record') {
-      setDialogType('new-record');
-      setInputDialogOpen(true);
+      await requestInputDialog('new-record');
       return;
     }
     if (actionId === 'navigation:open-list') {
-      setDialogType('open-list');
-      setInputDialogOpen(true);
+      await requestInputDialog('open-list');
       return;
     }
     if (actionId === 'admin:show-user-roles') {
@@ -180,41 +178,6 @@ const PopupApp: React.FC = () => {
       userId: user.systemuserid,
       userName: user.fullname,
     });
-  };
-
-  // 输入弹窗提交：按弹窗类型组装参数并执行对应导航动作
-  const handleDialogSubmit = async () => {
-    const entity = entityName.trim();
-    if (!entity) return;
-
-    let action: DynamicsAction;
-    let data: Record<string, string>;
-    switch (dialogType) {
-      case 'open-by-id': {
-        const id = recordId.trim();
-        if (!id) return;
-        action = 'navigation:open-record-by-id';
-        data = { entityName: entity, recordId: id };
-        break;
-      }
-      case 'new-record':
-        action = 'navigation:new-record';
-        data = { entityName: entity };
-        break;
-      case 'open-list':
-        action = 'navigation:open-list';
-        data = { entityName: entity };
-        break;
-    }
-
-    setInputDialogOpen(false);
-    await executeAction(action, data);
-  };
-
-  const handleDialogCancel = () => {
-    setInputDialogOpen(false);
-    setEntityName('');
-    setRecordId('');
   };
 
   // 打开浏览器侧边栏，沿用当前已保存的显示模式
@@ -539,24 +502,6 @@ const PopupApp: React.FC = () => {
           </Box>
         )}
       </Box>
-      {/* 导航动作参数输入弹窗（复用侧边栏同款组件） */}
-      <InputDialog
-        open={inputDialogOpen}
-        onClose={handleDialogCancel}
-        onSubmit={handleDialogSubmit}
-        title={
-          dialogType === 'open-by-id'
-            ? t('sidebar.dialog.openById')
-            : dialogType === 'new-record'
-              ? t('sidebar.dialog.newRecord')
-              : t('sidebar.dialog.openList')
-        }
-        type={dialogType}
-        entityName={entityName}
-        recordId={recordId}
-        onEntityNameChange={setEntityName}
-        onRecordIdChange={setRecordId}
-      />
       <UserInfoDialog
         open={userInfoOpen}
         onClose={() => setUserInfoOpen(false)}

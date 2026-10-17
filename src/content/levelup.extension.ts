@@ -26,7 +26,7 @@ import {
 } from '#types/global';
 import { CustomCommand } from '#types/custom-commands';
 import { FormActions } from './modules/form-actions';
-import { setDialogLanguage } from './modules/dialog-i18n';
+import { dialogText, setDialogLanguage } from './modules/dialog-i18n';
 import { NavigationActions } from './modules/navigation-actions';
 import { AdminActions } from './modules/admin-actions';
 import { DebuggingActions } from './modules/debugging-actions';
@@ -34,6 +34,7 @@ import { CustomCommandsExecutor } from './modules/custom-commands';
 import { WebApiClient } from './modules/webapi-client';
 import { DynamicsUtils } from './modules/utils';
 import { GridActions } from './modules/grid-actions';
+import { InputDialog, InputDialogEntityOption } from './modules/input-dialog';
 
 /**
  * Configuration for action method mapping
@@ -458,12 +459,74 @@ export class LevelUpExtension {
     actionName: NavigationActionName,
     data: unknown
   ): Promise<unknown> {
+    // 输入参数动作：先在页面内弹窗收集实体等信息，再执行对应导航
+    if (actionName === 'request-input') {
+      return this.requestNavigationInput(data);
+    }
+
     return this.executeActionMethod(
       NavigationActions,
       this.getNavigationActionMappings(),
       actionName,
       data
     );
+  }
+
+  /**
+   * 在页面内显示输入弹窗并执行用户选择的导航动作。
+   * 返回 null 表示用户取消。
+   */
+  private async requestNavigationInput(data: unknown): Promise<unknown> {
+    const dialogType =
+      data && typeof data === 'object' && 'dialogType' in data
+        ? (data as { dialogType?: string }).dialogType
+        : undefined;
+    if (dialogType !== 'open-by-id' && dialogType !== 'new-record' && dialogType !== 'open-list') {
+      throw new Error('Invalid dialog type for request-input action');
+    }
+
+    // 实体列表获取失败时仍允许手动输入实体逻辑名
+    let entities: InputDialogEntityOption[] = [];
+    try {
+      const metadata = await this.getEntityMetadata();
+      entities = (metadata || [])
+        .filter(entity => entity.LogicalName)
+        .map(entity => ({
+          logicalName: entity.LogicalName,
+          displayName: entity.DisplayName?.UserLocalizedLabel?.Label || entity.LogicalName,
+        }));
+    } catch (error) {
+      console.error('[LevelUp] 获取实体列表失败，输入弹窗仅支持手动输入:', error);
+    }
+
+    const title =
+      dialogType === 'open-by-id'
+        ? dialogText('input.titleOpenById')
+        : dialogType === 'new-record'
+          ? dialogText('input.titleNewRecord')
+          : dialogText('input.titleOpenList');
+
+    const result = await InputDialog.show({
+      title,
+      requireRecordId: dialogType === 'open-by-id',
+      entities,
+    });
+
+    if (!result) {
+      return null;
+    }
+
+    switch (dialogType) {
+      case 'open-by-id':
+        return NavigationActions.openRecordById({
+          entityName: result.entityName,
+          recordId: result.recordId,
+        });
+      case 'new-record':
+        return NavigationActions.createNewRecord({ entityName: result.entityName });
+      case 'open-list':
+        return NavigationActions.openEntityList({ entityName: result.entityName });
+    }
   }
 
   private async handleDebuggingAction(

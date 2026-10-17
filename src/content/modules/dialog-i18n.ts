@@ -74,7 +74,17 @@ type DialogTextKey =
   | 'userRoles.businessUnitHeader'
   | 'userRoles.none'
   | 'userRoles.found'
-  | 'userRoles.retrieveError';
+  | 'userRoles.retrieveError'
+  | 'input.titleOpenById'
+  | 'input.titleNewRecord'
+  | 'input.titleOpenList'
+  | 'input.entityName'
+  | 'input.entityPlaceholder'
+  | 'input.recordId'
+  | 'input.recordIdPlaceholder'
+  | 'input.cancel'
+  | 'input.confirm'
+  | 'input.noEntities';
 
 const DIALOG_TEXTS: Record<DialogLanguage, Record<DialogTextKey, string>> = {
   en: {
@@ -151,6 +161,16 @@ const DIALOG_TEXTS: Record<DialogLanguage, Record<DialogTextKey, string>> = {
     'userRoles.none': 'No security roles are directly assigned to this user',
     'userRoles.found': 'Displayed {count} security role(s)',
     'userRoles.retrieveError': 'Failed to retrieve user security roles',
+    'input.titleOpenById': 'Open Record',
+    'input.titleNewRecord': 'New Record',
+    'input.titleOpenList': 'Open Entity List',
+    'input.entityName': 'Entity Name',
+    'input.entityPlaceholder': 'Type or select an entity...',
+    'input.recordId': 'Record ID',
+    'input.recordIdPlaceholder': 'Enter or paste the record ID...',
+    'input.cancel': 'Cancel',
+    'input.confirm': 'OK',
+    'input.noEntities': 'No matching entities',
   },
   zh: {
     'common.quickNavigation': '快速导航',
@@ -226,6 +246,16 @@ const DIALOG_TEXTS: Record<DialogLanguage, Record<DialogTextKey, string>> = {
     'userRoles.none': '该用户未直接分配任何安全角色',
     'userRoles.found': '已显示 {count} 个安全角色',
     'userRoles.retrieveError': '获取用户安全角色失败',
+    'input.titleOpenById': '打开记录',
+    'input.titleNewRecord': '新建记录',
+    'input.titleOpenList': '打开实体列表',
+    'input.entityName': '实体名称',
+    'input.entityPlaceholder': '输入或选择实体...',
+    'input.recordId': '记录 ID',
+    'input.recordIdPlaceholder': '输入或粘贴记录 ID...',
+    'input.cancel': '取消',
+    'input.confirm': '确定',
+    'input.noEntities': '没有匹配的实体',
   },
 };
 
