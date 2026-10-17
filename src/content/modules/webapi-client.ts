@@ -25,10 +25,17 @@ interface AttributeMetadataLabel {
 
 interface AttributeMetadata {
   LogicalName: string;
+  IsValidForGrid?: boolean;
   DisplayName?: {
     UserLocalizedLabel?: AttributeMetadataLabel | null;
     LocalizedLabels?: AttributeMetadataLabel[];
   };
+}
+
+// 网格可显示字段的元数据（逻辑名 + 本地化显示名）
+export interface GridAttributeMetadata {
+  logicalName: string;
+  displayName: string;
 }
 
 /**
@@ -324,6 +331,40 @@ export class WebApiClient {
     });
 
     return displayNames;
+  }
+
+  /**
+   * 获取实体在网格中可显示的所有字段（ValidForGrid=true），用于动态补全网格列
+   */
+  async retrieveGridAttributes(entityLogicalName: string): Promise<GridAttributeMetadata[]> {
+    const clientUrl = Xrm.Utility.getGlobalContext().getClientUrl();
+    // OData 暴露的可筛选属性名是 IsValidForGrid（不是 ValidForGrid）
+    const url = `${clientUrl}/api/data/v9.0/EntityDefinitions(LogicalName='${entityLogicalName}')/Attributes?$select=LogicalName,DisplayName,IsValidForGrid&$filter=IsValidForGrid eq true`;
+
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: {
+        Accept: 'application/json',
+        'Content-Type': 'application/json',
+        'OData-MaxVersion': '4.0',
+        'OData-Version': '4.0',
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+    }
+
+    const data = (await response.json()) as { value?: AttributeMetadata[] };
+
+    return (data.value ?? []).map(attribute => ({
+      logicalName: attribute.LogicalName,
+      // 优先使用调用者语言对应的标签，缺失时退回逻辑名
+      displayName:
+        attribute.DisplayName?.UserLocalizedLabel?.Label ??
+        attribute.DisplayName?.LocalizedLabels?.[0]?.Label ??
+        attribute.LogicalName,
+    }));
   }
 
   /**

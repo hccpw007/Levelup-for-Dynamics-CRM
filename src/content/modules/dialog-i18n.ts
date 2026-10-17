@@ -62,7 +62,11 @@ type DialogTextKey =
   | 'form.processNameHeader'
   | 'form.processDescriptionHeader'
   | 'form.processStatusHeader'
-  | 'form.processOwnerHeader';
+  | 'form.processOwnerHeader'
+  | 'gridFields.none'
+  | 'gridFields.summary'
+  | 'gridFields.editorNotOpened'
+  | 'gridFields.applyFailed';
 
 const DIALOG_TEXTS: Record<DialogLanguage, Record<DialogTextKey, string>> = {
   en: {
@@ -127,6 +131,10 @@ const DIALOG_TEXTS: Record<DialogLanguage, Record<DialogTextKey, string>> = {
     'form.processDescriptionHeader': 'Description',
     'form.processStatusHeader': 'Status',
     'form.processOwnerHeader': 'Owner',
+    'gridFields.none': 'No editable grid found on the current page',
+    'gridFields.summary': 'All fields displayed on {grids} grid(s), {fields} column(s) added',
+    'gridFields.editorNotOpened': 'Unable to open the column editor',
+    'gridFields.applyFailed': 'The column editor apply button is not available',
   },
   zh: {
     'common.quickNavigation': '快速导航',
@@ -190,6 +198,10 @@ const DIALOG_TEXTS: Record<DialogLanguage, Record<DialogTextKey, string>> = {
     'form.processDescriptionHeader': '描述',
     'form.processStatusHeader': '状态',
     'form.processOwnerHeader': '负责人',
+    'gridFields.none': '当前页面未找到可操作的网格',
+    'gridFields.summary': '已为 {grids} 个网格显示所有字段，新增 {fields} 列',
+    'gridFields.editorNotOpened': '无法打开列编辑器',
+    'gridFields.applyFailed': '列编辑器的应用按钮当前不可用',
   },
 };
 

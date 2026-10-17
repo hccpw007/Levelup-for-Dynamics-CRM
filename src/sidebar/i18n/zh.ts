@@ -350,6 +350,10 @@ export const zh: Record<TranslationKey, string> = {
   'action.form:all-fields.label': '显示所有字段',
   'action.form:all-fields.tooltip': '在可搜索表格中查看所有字段及其值',
   'action.form:all-fields.short': '所有字段',
+  // 网格字段：让列表主网格和表单子网格显示实体所有字段
+  'action.form:show-all-grid-fields.label': '网格字段',
+  'action.form:show-all-grid-fields.tooltip': '让页面上的网格和子网格显示所有字段，无需手动编辑列',
+  'action.form:show-all-grid-fields.short': '网格字段',
   'action.form:open-editor.label': '打开表单编辑器',
   'action.form:open-editor.tooltip': '打开表单编辑器以修改表单布局',
   'action.form:open-editor.short': '表单编辑',

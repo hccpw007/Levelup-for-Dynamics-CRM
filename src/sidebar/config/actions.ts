@@ -24,6 +24,7 @@ import {
   DarkMode as DarkModeIcon,
   PushPin as PinIcon,
   TableChart as TableChartIcon,
+  ViewColumn as ViewColumnIcon,
   AutoFixHigh as WizardIcon,
   Compare as CompareIcon,
   Tune as TuneIcon,
@@ -178,6 +179,15 @@ export const formActions: ActionConfig[] = [
     category: 'common',
     shortLabel: 'All Fields',
     shortIcon: '📊',
+  },
+  {
+    id: 'form:show-all-grid-fields',
+    label: 'Grid Fields',
+    icon: ViewColumnIcon,
+    tooltip: 'Display all fields in grids and subgrids without manually editing columns',
+    category: 'common',
+    shortLabel: 'Grid Fields',
+    shortIcon: '🧩',
   },
   {
     id: 'form:open-editor',

@@ -63,6 +63,7 @@ export class ActionHandlerRegistry {
       { action: 'form:refresh-autosave-off', contentScriptMethod: 'refreshWithoutSave' },
       { action: 'form:open-web-api', contentScriptMethod: 'openWebApiRecord' },
       { action: 'form:all-fields', contentScriptMethod: 'showAllFields' },
+      { action: 'form:show-all-grid-fields', contentScriptMethod: 'showAllGridFields' },
       { action: 'form:open-editor', contentScriptMethod: 'openFormEditor' },
       { action: 'form:table-processes', contentScriptMethod: 'showTableProcesses' },
     ];

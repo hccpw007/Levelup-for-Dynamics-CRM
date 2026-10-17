@@ -365,6 +365,11 @@ export const en = {
   'action.form:all-fields.label': 'Show All Fields',
   'action.form:all-fields.tooltip': 'View all fields and their values in a searchable table',
   'action.form:all-fields.short': 'All Fields',
+  // Grid Fields: display every entity field on list grids and form subgrids
+  'action.form:show-all-grid-fields.label': 'Grid Fields',
+  'action.form:show-all-grid-fields.tooltip':
+    'Display all fields in grids and subgrids without manually editing columns',
+  'action.form:show-all-grid-fields.short': 'Grid Fields',
   'action.form:open-editor.label': 'Open Form Editor',
   'action.form:open-editor.tooltip': 'Open the form editor to modify the form layout',
   'action.form:open-editor.short': 'Form Edit',

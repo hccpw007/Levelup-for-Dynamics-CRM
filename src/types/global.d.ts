@@ -29,6 +29,7 @@ export type FormActionName =
     | 'clone-record'
     | 'refresh-autosave-off'
     | 'all-fields'
+    | 'show-all-grid-fields'
     | 'forms-monitor'
     | 'ribbon-debugger'
     | 'open-editor'

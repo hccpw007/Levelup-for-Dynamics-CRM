@@ -33,6 +33,7 @@ import { DebuggingActions } from './modules/debugging-actions';
 import { CustomCommandsExecutor } from './modules/custom-commands';
 import { WebApiClient } from './modules/webapi-client';
 import { DynamicsUtils } from './modules/utils';
+import { GridActions } from './modules/grid-actions';
 
 /**
  * Configuration for action method mapping
@@ -48,10 +49,12 @@ export class LevelUpExtension {
   private cacheKey: string = 'levelup_entity_metadata_cache'; // Default, will be updated in init
   private formActions: FormActions;
   private debuggingActions: DebuggingActions;
+  private gridActions: GridActions;
 
   constructor() {
     this.formActions = new FormActions(this);
     this.debuggingActions = new DebuggingActions();
+    this.gridActions = new GridActions();
     this.init();
   }
 
@@ -421,6 +424,11 @@ export class LevelUpExtension {
   }
 
   private async handleFormAction(actionName: FormActionName, data: unknown): Promise<unknown> {
+    // 网格字段同时作用于列表页主网格和表单子网格，不要求表单上下文
+    if (actionName === 'show-all-grid-fields') {
+      return this.gridActions.showAllGridFields();
+    }
+
     const isFormCtx = DynamicsUtils.isFormContext();
 
     if (isFormCtx) {
