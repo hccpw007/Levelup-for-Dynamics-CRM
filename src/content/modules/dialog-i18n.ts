@@ -14,7 +14,13 @@ type DialogTextKey =
   | 'optionset.nameHeader'
   | 'optionset.valueHeader'
   | 'optionset.noneFound'
-  | 'optionset.found';
+  | 'optionset.found'
+  | 'allFields.title'
+  | 'allFields.tableTitle'
+  | 'allFields.description'
+  | 'allFields.fieldHeader'
+  | 'allFields.noteHeader'
+  | 'allFields.valueHeader';
 
 const DIALOG_TEXTS: Record<DialogLanguage, Record<DialogTextKey, string>> = {
   en: {
@@ -29,6 +35,12 @@ const DIALOG_TEXTS: Record<DialogLanguage, Record<DialogTextKey, string>> = {
     'optionset.valueHeader': 'OptionSet Value',
     'optionset.noneFound': 'No option set controls found on this form',
     'optionset.found': 'Found {count} option set control(s)',
+    'allFields.title': 'All Fields ({count})',
+    'allFields.tableTitle': 'Field Values (Web API)',
+    'allFields.description': '{count} field(s) returned via Web API for {entity}',
+    'allFields.fieldHeader': 'Field Name',
+    'allFields.noteHeader': 'Field Note',
+    'allFields.valueHeader': 'Field Value',
   },
   zh: {
     'common.quickNavigation': '快速导航',
@@ -42,6 +54,12 @@ const DIALOG_TEXTS: Record<DialogLanguage, Record<DialogTextKey, string>> = {
     'optionset.valueHeader': '选项集值',
     'optionset.noneFound': '此表单上未找到选项集控件',
     'optionset.found': '找到 {count} 个选项集控件',
+    'allFields.title': '全部字段（{count}）',
+    'allFields.tableTitle': '字段值（Web API）',
+    'allFields.description': '通过 Web API 从 {entity} 返回 {count} 个字段',
+    'allFields.fieldHeader': '字段',
+    'allFields.noteHeader': '字段备注',
+    'allFields.valueHeader': '字段值',
   },
 };
 

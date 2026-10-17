@@ -19,6 +19,18 @@ interface SearchResult {
   totalResultsMessage?: string;
 }
 
+interface AttributeMetadataLabel {
+  Label?: string;
+}
+
+interface AttributeMetadata {
+  LogicalName: string;
+  DisplayName?: {
+    UserLocalizedLabel?: AttributeMetadataLabel | null;
+    LocalizedLabels?: AttributeMetadataLabel[];
+  };
+}
+
 /**
  * Web API client using dynamics-web-api for all Dynamics 365 operations
  */
@@ -275,6 +287,43 @@ export class WebApiClient {
       hasMoreResults,
       totalResultsMessage,
     };
+  }
+
+  /**
+   * Retrieve attribute display names (localized labels) keyed by logical name
+   */
+  async retrieveAttributeDisplayNames(entityLogicalName: string): Promise<Record<string, string>> {
+    const clientUrl = Xrm.Utility.getGlobalContext().getClientUrl();
+    const url = `${clientUrl}/api/data/v9.0/EntityDefinitions(LogicalName='${entityLogicalName}')/Attributes?$select=LogicalName,DisplayName`;
+
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: {
+        Accept: 'application/json',
+        'Content-Type': 'application/json',
+        'OData-MaxVersion': '4.0',
+        'OData-Version': '4.0',
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+    }
+
+    const data = (await response.json()) as { value?: AttributeMetadata[] };
+    const displayNames: Record<string, string> = {};
+
+    // 优先使用调用者语言对应的标签，缺失时退回第一个本地化标签
+    (data.value ?? []).forEach(attribute => {
+      const label =
+        attribute.DisplayName?.UserLocalizedLabel?.Label ??
+        attribute.DisplayName?.LocalizedLabels?.[0]?.Label;
+      if (label) {
+        displayNames[attribute.LogicalName] = label;
+      }
+    });
+
+    return displayNames;
   }
 
   /**

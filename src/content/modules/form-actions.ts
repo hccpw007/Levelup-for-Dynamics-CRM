@@ -513,6 +513,14 @@ export class FormActions {
       // Retrieve full record with annotations to get formatted values
       const record = await webApiClient.retrieveRecord(collection, recordId);
 
+      // Display names are supplementary; keep the popup working when metadata retrieval fails
+      let attributeDisplayNames: Record<string, string> = {};
+      try {
+        attributeDisplayNames = await webApiClient.retrieveAttributeDisplayNames(entityLogicalName);
+      } catch (error) {
+        console.warn('[FormActions] Failed to retrieve attribute display names:', error);
+      }
+
       const rows: string[][] = [];
       const processedFields = new Set<string>();
 
@@ -559,10 +567,13 @@ export class FormActions {
             displayValue = String(value);
           }
 
+          // Derived lookup keys share the display name of their base attribute
+          const fieldNote = attributeDisplayNames[this.getBaseAttributeName(key)] ?? '';
+
           // Add all fields regardless of value
-          rows.push([key, displayValue]);
+          rows.push([key, fieldNote, displayValue]);
         } catch (e) {
-          rows.push([key, '[Error reading value]']);
+          rows.push([key, '', '[Error reading value]']);
         }
       });
 
@@ -571,12 +582,19 @@ export class FormActions {
 
       DynamicsUtils.createMuiPopup({
         id: 'levelup-all-fields-popup',
-        title: `All Fields (${rows.length})`,
+        title: dialogText('allFields.title', { count: rows.length }),
         tables: [
           {
-            title: 'Field Values (Web API)',
-            headers: ['Field Name', 'Field Value'],
-            description: `${rows.length} field(s) returned via Web API for ${entityLogicalName}`,
+            title: dialogText('allFields.tableTitle'),
+            headers: [
+              dialogText('allFields.fieldHeader'),
+              dialogText('allFields.noteHeader'),
+              dialogText('allFields.valueHeader'),
+            ],
+            description: dialogText('allFields.description', {
+              count: rows.length,
+              entity: entityLogicalName,
+            }),
             rows,
           },
         ],
@@ -590,6 +608,17 @@ export class FormActions {
       DynamicsUtils.showToast('Error retrieving fields via Web API', 'error');
       return 'Failed to retrieve fields via Web API';
     }
+  }
+
+  /**
+   * 将 Web API 记录属性名映射为基础字段逻辑名。
+   * 查找字段以 `_createdby_value` 形式出现，其注解属性为
+   * `_createdby_value_Formatted`、`_createdby_value_LogicalName` 等。
+   */
+  private getBaseAttributeName(key: string): string {
+    return key
+      .replace(/^_/, '')
+      .replace(/_value(_Formatted|_LogicalName|_NavigationProperty)?$/, '');
   }
 
   /**
