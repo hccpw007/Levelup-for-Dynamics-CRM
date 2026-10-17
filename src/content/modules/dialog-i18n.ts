@@ -66,7 +66,15 @@ type DialogTextKey =
   | 'gridFields.none'
   | 'gridFields.summary'
   | 'gridFields.editorNotOpened'
-  | 'gridFields.applyFailed';
+  | 'gridFields.applyFailed'
+  | 'userRoles.title'
+  | 'userRoles.tableTitle'
+  | 'userRoles.description'
+  | 'userRoles.roleHeader'
+  | 'userRoles.businessUnitHeader'
+  | 'userRoles.none'
+  | 'userRoles.found'
+  | 'userRoles.retrieveError';
 
 const DIALOG_TEXTS: Record<DialogLanguage, Record<DialogTextKey, string>> = {
   en: {
@@ -135,6 +143,14 @@ const DIALOG_TEXTS: Record<DialogLanguage, Record<DialogTextKey, string>> = {
     'gridFields.summary': 'All fields displayed on {grids} grid(s), {fields} column(s) added',
     'gridFields.editorNotOpened': 'Unable to open the column editor',
     'gridFields.applyFailed': 'The column editor apply button is not available',
+    'userRoles.title': 'Security Roles - {user}',
+    'userRoles.tableTitle': 'Assigned Security Roles',
+    'userRoles.description': '{count} role(s) assigned directly to {user}',
+    'userRoles.roleHeader': 'Role Name',
+    'userRoles.businessUnitHeader': 'Business Unit',
+    'userRoles.none': 'No security roles are directly assigned to this user',
+    'userRoles.found': 'Displayed {count} security role(s)',
+    'userRoles.retrieveError': 'Failed to retrieve user security roles',
   },
   zh: {
     'common.quickNavigation': '快速导航',
@@ -202,6 +218,14 @@ const DIALOG_TEXTS: Record<DialogLanguage, Record<DialogTextKey, string>> = {
     'gridFields.summary': '已为 {grids} 个网格显示所有字段，新增 {fields} 列',
     'gridFields.editorNotOpened': '无法打开列编辑器',
     'gridFields.applyFailed': '列编辑器的应用按钮当前不可用',
+    'userRoles.title': '安全角色 - {user}',
+    'userRoles.tableTitle': '已分配的安全角色',
+    'userRoles.description': '直接分配给 {user} 的 {count} 个角色',
+    'userRoles.roleHeader': '角色名称',
+    'userRoles.businessUnitHeader': '业务部门',
+    'userRoles.none': '该用户未直接分配任何安全角色',
+    'userRoles.found': '已显示 {count} 个安全角色',
+    'userRoles.retrieveError': '获取用户安全角色失败',
   },
 };
 

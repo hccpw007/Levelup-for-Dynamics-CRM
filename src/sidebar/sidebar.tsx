@@ -16,6 +16,8 @@ import ActionSection from '#components/ActionSection';
 import Favorites from '#components/Favorites';
 import Impersonation from '#components/Impersonation';
 import InputDialog from '#components/InputDialog';
+import UserRoleDialog from '#components/UserRoleDialog';
+import { UserToImpersonate } from '#hooks/useImpersonation';
 import LoadingOverlay from '#components/LoadingOverlay';
 import Toast from '#components/Toast';
 import InlineAlert from '#components/InlineAlert';
@@ -53,6 +55,7 @@ const App: React.FC = () => {
   const [environmentUrl, setEnvironmentUrl] = useState<string>('');
   const [userInfoOpen, setUserInfoOpen] = useState(false);
   const [userInfo, setUserInfo] = useState<CurrentUserInfo | null>(null);
+  const [userRoleDialogOpen, setUserRoleDialogOpen] = useState(false);
 
   // Function to show inline alert for critical messages
   const showInlineAlert = (
@@ -258,6 +261,10 @@ const App: React.FC = () => {
       setInputDialogOpen(true);
       return;
     }
+    if (id === 'admin:show-user-roles') {
+      setUserRoleDialogOpen(true);
+      return;
+    }
 
     setLoadingOpen(true);
     try {
@@ -370,6 +377,43 @@ const App: React.FC = () => {
     setInputDialogOpen(false);
     setEntityName('');
     setRecordId('');
+  };
+
+  // 查询所选用户的角色：结果由内容脚本在页面内以表格弹窗展示
+  const handleUserRoleSubmit = async (user: UserToImpersonate) => {
+    setUserRoleDialogOpen(false);
+    setLoadingOpen(true);
+    try {
+      const response = await messageService.sendMessage('admin:show-user-roles', {
+        userId: user.systemuserid,
+        userName: user.fullname,
+      });
+
+      // 后台转发会把内容脚本响应再包一层 data，执行失败时内层 success 为 false
+      const payload = response.data as
+        | { success?: boolean; error?: string; data?: unknown }
+        | undefined;
+      if (!response.success || payload?.success === false) {
+        throw new Error(payload?.error || response.error || t('sidebar.unknownError'));
+      }
+
+      // 内容脚本返回角色数量等摘要，提示用户结果已显示在页面弹窗中
+      if (typeof payload?.data === 'string') {
+        setToastMessage(payload.data);
+        setToastSeverity('success');
+        setToastOpen(true);
+      }
+    } catch (error) {
+      setToastMessage(
+        t('sidebar.actionFailed', {
+          error: error instanceof Error ? error.message : t('sidebar.unknownError'),
+        })
+      );
+      setToastSeverity('error');
+      setToastOpen(true);
+    } finally {
+      setLoadingOpen(false);
+    }
   };
 
   const openAdminCenter = async () => {
@@ -535,6 +579,11 @@ const App: React.FC = () => {
         open={userInfoOpen}
         onClose={() => setUserInfoOpen(false)}
         userInfo={userInfo}
+      />
+      <UserRoleDialog
+        open={userRoleDialogOpen}
+        onClose={() => setUserRoleDialogOpen(false)}
+        onSubmit={handleUserRoleSubmit}
       />
       <LoadingOverlay open={loadingOpen} />
       <Toast

@@ -116,6 +116,11 @@ export class LevelUpExtension {
       { actionName: 'get-user-info', method: 'getCurrentUserInfo' },
       { actionName: 'get-organization-settings', method: 'getOrganizationSettings' },
       { actionName: 'get-client-info', method: 'getClientInfo' },
+      {
+        actionName: 'show-user-roles',
+        method: 'showUserRoles',
+        dataTransformer: data => data as { userId: string; userName?: string },
+      },
     ];
   }
 

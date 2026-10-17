@@ -58,6 +58,7 @@ export type AdminActionName =
     | 'get-client-info'
     | 'check-system-health'
     | 'generate-diagnostic-report'
+    | 'show-user-roles'
     | 'search-users'
     | 'start-impersonation'
     | 'stop-impersonation'
@@ -255,6 +256,9 @@ export interface NavigationData {
 export interface AdminData {
     privilegeName?: string;
     query?: string;
+    // Target user for the show-user-roles action
+    userId?: string;
+    userName?: string;
 }
 
 // Extend Window interface for custom properties

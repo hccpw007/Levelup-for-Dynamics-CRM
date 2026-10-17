@@ -4,6 +4,8 @@
 
 import { CurrentUserInfo } from '#types/global';
 import { WebApiClient } from './webapi-client';
+import { DynamicsUtils } from './utils';
+import { dialogText } from './dialog-i18n';
 
 interface ImpersonationUser {
   systemuserid: string;
@@ -17,6 +19,11 @@ interface SearchResult {
   users: ImpersonationUser[];
   hasMoreResults: boolean;
   totalResultsMessage?: string;
+}
+
+interface UserRoleInfo {
+  name: string;
+  businessUnit: string;
 }
 
 // Global variable to store current impersonation
@@ -236,6 +243,95 @@ export class AdminActions {
         `Failed to search users: ${error instanceof Error ? error.message : 'Unknown error'}`
       );
     }
+  }
+
+  /**
+   * Show the security roles directly assigned to a user in a table dialog
+   */
+  static async showUserRoles(data: { userId: string; userName?: string }): Promise<string> {
+    if (!data?.userId) {
+      throw new Error('User ID is required to retrieve security roles');
+    }
+
+    // GUIDs may arrive wrapped in braces from Xrm lookups
+    const userId = data.userId.replace(/[{}]/g, '');
+    const userName = data.userName || userId;
+
+    try {
+      const roles = await this.retrieveUserRoles(userId);
+
+      if (roles.length === 0) {
+        DynamicsUtils.showToast(dialogText('userRoles.none'), 'info');
+        return dialogText('userRoles.none');
+      }
+
+      DynamicsUtils.createMuiPopup({
+        id: 'levelup-user-roles-popup',
+        title: dialogText('userRoles.title', { user: userName }),
+        tables: [
+          {
+            title: dialogText('userRoles.tableTitle'),
+            description: dialogText('userRoles.description', {
+              count: roles.length,
+              user: userName,
+            }),
+            headers: [
+              dialogText('userRoles.roleHeader'),
+              dialogText('userRoles.businessUnitHeader'),
+            ],
+            rows: roles.map(role => [role.name, role.businessUnit]),
+          },
+        ],
+        layoutMode: 'standard',
+        enableSearch: true,
+        showOpenInNewTab: true,
+      });
+
+      return dialogText('userRoles.found', { count: roles.length });
+    } catch (error) {
+      console.error('[AdminActions] Failed to retrieve user roles:', error);
+      DynamicsUtils.showToast(dialogText('userRoles.retrieveError'), 'error');
+      throw new Error(
+        `Failed to retrieve user roles: ${error instanceof Error ? error.message : 'Unknown error'}`
+      );
+    }
+  }
+
+  /**
+   * Retrieve security roles directly assigned to a user.
+   * The systemuserroles intersect entity only contains roles assigned to the user
+   * itself, so roles inherited from teams are intentionally excluded.
+   */
+  private static async retrieveUserRoles(userId: string): Promise<UserRoleInfo[]> {
+    // 以交集实体 systemuserroles 为主实体，直接按 systemuserid 过滤，
+    // 比反向 intersect 联查更可靠；业务部门通过嵌套 link-entity 取名称
+    const fetchXml = `
+      <fetch>
+        <entity name="systemuserroles">
+          <attribute name="roleid" />
+          <filter>
+            <condition attribute="systemuserid" operator="eq" value="${userId}" />
+          </filter>
+          <link-entity name="role" from="roleid" to="roleid" link-type="inner" alias="r">
+            <attribute name="name" />
+            <link-entity name="businessunit" from="businessunitid" to="businessunitid" link-type="inner" alias="bu">
+              <attribute name="name" />
+            </link-entity>
+          </link-entity>
+        </entity>
+      </fetch>
+    `;
+
+    const webApiClient = WebApiClient.getInstance();
+    // 交集实体的 Web API 集合名带 collection 后缀，与 roleprivilegescollection 一致
+    const result = await webApiClient.executeFetchXml('systemuserrolescollection', fetchXml);
+    const entities = (result?.entities ?? []) as Array<Record<string, unknown>>;
+
+    return entities.map(entity => ({
+      name: String(entity['r.name'] ?? ''),
+      // Link-entity attributes are prefixed with the alias in Web API responses
+      businessUnit: String(entity['bu.name'] ?? ''),
+    }));
   }
 
   /**

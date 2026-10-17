@@ -39,6 +39,7 @@ import {
   Build as BuildIcon,
   MonitorHeart as MonitorIcon,
   AccountCircle as UserIcon,
+  ManageAccounts as UserRolesIcon,
 } from '@mui/icons-material';
 
 export interface ActionConfig {
@@ -411,5 +412,14 @@ export const navigationActions: ActionConfig[] = [
     category: 'common',
     shortLabel: 'User Info',
     shortIcon: '👤',
+  },
+  {
+    id: 'admin:show-user-roles',
+    label: 'User Roles',
+    icon: UserRolesIcon,
+    tooltip: 'View all security roles assigned to a user',
+    category: 'common',
+    shortLabel: 'Roles',
+    shortIcon: '🔐',
   },
 ];

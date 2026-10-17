@@ -451,6 +451,19 @@ export const en = {
   'action.admin:get-user-info.label': 'User Info',
   'action.admin:get-user-info.tooltip': 'View current user ID, name and security roles',
   'action.admin:get-user-info.short': 'User Info',
+  // Security roles lookup for an arbitrary user
+  'action.admin:show-user-roles.label': 'User Roles',
+  'action.admin:show-user-roles.tooltip': 'View all security roles assigned to a user',
+  'action.admin:show-user-roles.short': 'Roles',
+  // User roles dialog labels
+  'userRoles.dialogTitle': 'View User Security Roles',
+  'userRoles.searchLabel': 'Search User',
+  'userRoles.searchPlaceholder': 'Enter name or email (at least 2 characters)',
+  'userRoles.searching': 'Searching users...',
+  'userRoles.noOptionsMin': 'Type at least 2 characters to search',
+  'userRoles.noUsers': 'No matching users found',
+  'userRoles.selected': 'Selected: {name} ({email})',
+  'userRoles.loadFailed': 'Failed to load user security roles',
   // Current user info dialog labels
   'userInfo.title': 'Current User Info',
   'userInfo.userId': 'User ID',

@@ -141,6 +141,14 @@ export class ActionHandlerRegistry {
           return { query: adminData?.query };
         },
       },
+      {
+        action: 'admin:show-user-roles',
+        contentScriptMethod: 'showUserRoles',
+        dataExtractor: data => {
+          const adminData = data as AdminData;
+          return { userId: adminData?.userId, userName: adminData?.userName };
+        },
+      },
     ];
 
     this.registerHandlers(adminConfigs);

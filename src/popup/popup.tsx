@@ -20,6 +20,8 @@ import { LanguageProvider, useLanguage } from '#contexts/LanguageContext';
 import { formActions, navigationActions, ActionConfig, localizeActions } from '#config/actions';
 import UserInfoDialog from '#components/UserInfoDialog';
 import InputDialog from '#components/InputDialog';
+import UserRoleDialog from '#components/UserRoleDialog';
+import { UserToImpersonate } from '#hooks/useImpersonation';
 import { Language } from '../sidebar/i18n';
 
 // 需要用户输入参数后再执行的动作类型
@@ -49,6 +51,7 @@ const PopupApp: React.FC = () => {
   const [dialogType, setDialogType] = useState<NavigationDialogType>('open-by-id');
   const [entityName, setEntityName] = useState('');
   const [recordId, setRecordId] = useState('');
+  const [userRoleDialogOpen, setUserRoleDialogOpen] = useState(false);
 
   // Detect if running in Firefox
   const isFirefox =
@@ -116,8 +119,17 @@ const PopupApp: React.FC = () => {
                 setUserInfo(response.data as CurrentUserInfo);
                 setUserInfoOpen(true);
               }
+              // popup 直连内容脚本，用户角色结果就是响应的 data 字符串
+              if (actionId === 'admin:show-user-roles' && typeof response.data === 'string') {
+                showInlineToast(response.data, 'success');
+              }
             } else {
               console.error('❌ Action failed:', response?.error || 'Unknown error');
+              // 用户角色查询失败时明确提示，避免选择用户后毫无反馈
+              if (actionId === 'admin:show-user-roles') {
+                showInlineToast(response?.error || t('userRoles.loadFailed'), 'error');
+                return;
+              }
               // Show inline toast for the common form-only error so the popup UX is clear
               if (
                 response?.error &&
@@ -153,8 +165,21 @@ const PopupApp: React.FC = () => {
       setInputDialogOpen(true);
       return;
     }
+    if (actionId === 'admin:show-user-roles') {
+      setUserRoleDialogOpen(true);
+      return;
+    }
 
     await executeAction(actionId);
+  };
+
+  // 提交用户角色查询：角色列表由内容脚本在页面内弹窗展示
+  const handleUserRoleSubmit = async (user: UserToImpersonate) => {
+    setUserRoleDialogOpen(false);
+    await executeAction('admin:show-user-roles', {
+      userId: user.systemuserid,
+      userName: user.fullname,
+    });
   };
 
   // 输入弹窗提交：按弹窗类型组装参数并执行对应导航动作
@@ -536,6 +561,11 @@ const PopupApp: React.FC = () => {
         open={userInfoOpen}
         onClose={() => setUserInfoOpen(false)}
         userInfo={userInfo}
+      />
+      <UserRoleDialog
+        open={userRoleDialogOpen}
+        onClose={() => setUserRoleDialogOpen(false)}
+        onSubmit={handleUserRoleSubmit}
       />
     </Box>
   );

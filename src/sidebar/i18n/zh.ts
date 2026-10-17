@@ -428,6 +428,19 @@ export const zh: Record<TranslationKey, string> = {
   'action.admin:get-user-info.label': '用户信息',
   'action.admin:get-user-info.tooltip': '查看当前用户的 ID、姓名和安全角色',
   'action.admin:get-user-info.short': '用户信息',
+  // 任意用户的安全角色查询入口
+  'action.admin:show-user-roles.label': '用户角色',
+  'action.admin:show-user-roles.tooltip': '查看分配给某个用户的所有安全角色',
+  'action.admin:show-user-roles.short': '用户角色',
+  // 用户角色对话框文案
+  'userRoles.dialogTitle': '查看用户安全角色',
+  'userRoles.searchLabel': '搜索用户',
+  'userRoles.searchPlaceholder': '输入姓名或邮箱（至少 2 个字符）',
+  'userRoles.searching': '正在搜索用户...',
+  'userRoles.noOptionsMin': '输入至少 2 个字符开始搜索',
+  'userRoles.noUsers': '未找到匹配的用户',
+  'userRoles.selected': '已选择：{name}（{email}）',
+  'userRoles.loadFailed': '加载用户安全角色失败',
   // 当前用户信息对话框字段
   'userInfo.title': '当前用户信息',
   'userInfo.userId': '用户 ID',
