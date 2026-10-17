@@ -352,8 +352,8 @@ const PopupApp: React.FC = () => {
             <Box
               sx={{
                 display: 'grid',
-                gridTemplateColumns: 'repeat(3, 1fr)',
-                gap: 0.5,
+                gridTemplateColumns: 'repeat(8, 1fr)',
+                gap: 0.25,
                 p: 0.5,
                 backgroundColor: theme =>
                   theme.palette.mode === 'dark'
@@ -460,8 +460,8 @@ const PopupApp: React.FC = () => {
             <Box
               sx={{
                 display: 'grid',
-                gridTemplateColumns: 'repeat(3, 1fr)',
-                gap: 0.5,
+                gridTemplateColumns: 'repeat(8, 1fr)',
+                gap: 0.25,
                 p: 0.5,
                 backgroundColor: theme =>
                   theme.palette.mode === 'dark'
