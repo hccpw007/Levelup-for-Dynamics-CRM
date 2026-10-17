@@ -174,37 +174,6 @@ const PopupApp: React.FC = () => {
         display: 'flex',
       }}
     >
-      {/* Vertical Express Mode Label */}
-      <Box
-        sx={{
-          width: '36px',
-          minWidth: '36px',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          background: 'linear-gradient(135deg, #1976d2, #42a5f5)',
-          position: 'relative',
-          overflow: 'hidden',
-        }}
-      >
-        <Typography
-          sx={{
-            color: 'white',
-            fontSize: '0.7rem',
-            fontWeight: 600,
-            letterSpacing: '1px',
-            writingMode: 'vertical-rl',
-            textOrientation: 'mixed',
-            transform: 'rotate(180deg)',
-            whiteSpace: 'nowrap',
-            overflow: 'hidden',
-            textOverflow: 'ellipsis',
-          }}
-        >
-          {t('popup.expressMode')}
-        </Typography>
-      </Box>
-
       {/* Main Content */}
       <Box
         sx={{

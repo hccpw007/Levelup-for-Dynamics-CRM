@@ -308,7 +308,6 @@ export const zh: Record<TranslationKey, string> = {
   'info.close': '关闭',
 
   // 弹窗
-  'popup.expressMode': '快速模式',
   'popup.sidebarModes': '侧边栏模式',
   'popup.default': '默认',
   'popup.simple': '简洁',

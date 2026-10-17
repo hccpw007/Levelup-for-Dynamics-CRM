@@ -319,7 +319,6 @@ export const en = {
   'info.close': 'Close',
 
   // Popup
-  'popup.expressMode': 'EXPRESS MODE',
   'popup.sidebarModes': 'Sidebar Modes',
   'popup.default': 'Default',
   'popup.simple': 'Simple',
