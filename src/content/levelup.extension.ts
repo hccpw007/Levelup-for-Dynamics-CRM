@@ -114,7 +114,7 @@ export class LevelUpExtension {
 
   private getAdminActionMappings(): ActionMethodConfig[] {
     return [
-      { actionName: 'get-user-info', method: 'getCurrentUserInfo' },
+      { actionName: 'get-user-info', method: 'showCurrentUserInfo' },
       { actionName: 'get-organization-settings', method: 'getOrganizationSettings' },
       { actionName: 'get-client-info', method: 'getClientInfo' },
       {

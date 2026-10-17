@@ -75,6 +75,16 @@ type DialogTextKey =
   | 'userRoles.none'
   | 'userRoles.found'
   | 'userRoles.retrieveError'
+  | 'userInfo.title'
+  | 'userInfo.tableTitle'
+  | 'userInfo.fieldHeader'
+  | 'userInfo.valueHeader'
+  | 'userInfo.userId'
+  | 'userInfo.userName'
+  | 'userInfo.languageId'
+  | 'userInfo.roles'
+  | 'userInfo.noRoles'
+  | 'userInfo.notAvailable'
   | 'input.titleOpenById'
   | 'input.titleNewRecord'
   | 'input.titleOpenList'
@@ -161,6 +171,17 @@ const DIALOG_TEXTS: Record<DialogLanguage, Record<DialogTextKey, string>> = {
     'userRoles.none': 'No security roles are directly assigned to this user',
     'userRoles.found': 'Displayed {count} security role(s)',
     'userRoles.retrieveError': 'Failed to retrieve user security roles',
+    // 当前用户信息页面级弹窗
+    'userInfo.title': 'Current User Info',
+    'userInfo.tableTitle': 'User Details',
+    'userInfo.fieldHeader': 'Field',
+    'userInfo.valueHeader': 'Value',
+    'userInfo.userId': 'User ID',
+    'userInfo.userName': 'User Name',
+    'userInfo.languageId': 'Language ID',
+    'userInfo.roles': 'Security Roles',
+    'userInfo.noRoles': 'No roles assigned',
+    'userInfo.notAvailable': 'Not available',
     'input.titleOpenById': 'Open Record',
     'input.titleNewRecord': 'New Record',
     'input.titleOpenList': 'Open Entity List',
@@ -246,6 +267,17 @@ const DIALOG_TEXTS: Record<DialogLanguage, Record<DialogTextKey, string>> = {
     'userRoles.none': '该用户未直接分配任何安全角色',
     'userRoles.found': '已显示 {count} 个安全角色',
     'userRoles.retrieveError': '获取用户安全角色失败',
+    // 当前用户信息页面级弹窗
+    'userInfo.title': '当前用户信息',
+    'userInfo.tableTitle': '用户详情',
+    'userInfo.fieldHeader': '字段',
+    'userInfo.valueHeader': '值',
+    'userInfo.userId': '用户 ID',
+    'userInfo.userName': '用户名',
+    'userInfo.languageId': '语言 ID',
+    'userInfo.roles': '安全角色',
+    'userInfo.noRoles': '未分配角色',
+    'userInfo.notAvailable': '未返回',
     'input.titleOpenById': '打开记录',
     'input.titleNewRecord': '新建记录',
     'input.titleOpenList': '打开实体列表',

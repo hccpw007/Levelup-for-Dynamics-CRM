@@ -509,16 +509,14 @@ export class DynamicsUtils {
         clickableSpan.style.cssText = `
           cursor: pointer;
           padding: 0;
-          margin-top: 1px;
           font-size: 12px;
           font-family: 'SegoeUI', 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
           font-weight: 600;
           text-decoration: none;
-          display: block;
-          width: fit-content;
+          display: inline-block;
+          white-space: nowrap;
           transition: color 0.2s ease;
           line-height: 1.2;
-          text-align: left;
         `
           .replace(/\s+/g, ' ')
           .trim();
@@ -667,11 +665,10 @@ export class DynamicsUtils {
           const baseText = textContent.replace(/\s*\([^)]+\)$/, '').trim();
 
           // Clear existing content and rebuild to prevent duplication
-          labelElement.textContent = baseText;
+          labelElement.textContent = `${baseText} `;
 
-          // Add the logical name badge below the label text (centered)
-          const lineBreak = document.createElement('br');
-          labelElement.appendChild(lineBreak);
+          // 逻辑名紧跟字段标签展示且不换行，避免标签区域出现两行而撑高
+          labelElement.style.whiteSpace = 'nowrap';
           labelElement.appendChild(clickableSpan);
         }
       }

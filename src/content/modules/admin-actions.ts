@@ -102,6 +102,50 @@ export class AdminActions {
   }
 
   /**
+   * 在 D365 页面内弹出当前用户信息弹窗。
+   * 使用页面级弹窗而非扩展窗口内的对话框，避免内容受侧边栏/快速模式高度限制。
+   */
+  static showCurrentUserInfo(): string {
+    const userInfo = this.getCurrentUserInfo();
+    const notAvailable = dialogText('userInfo.notAvailable');
+    // 角色一行一个展示，便于逐个查看；字段名只在首行出现
+    const roles: string[] =
+      userInfo.roles.length > 0
+        ? userInfo.roles
+        : (userInfo.securityRoles?.length ?? 0) > 0
+          ? userInfo.securityRoles
+          : [];
+    const roleRows: string[][] =
+      roles.length > 0
+        ? roles.map((role, index) => [index === 0 ? dialogText('userInfo.roles') : '', role])
+        : [[dialogText('userInfo.roles'), dialogText('userInfo.noRoles')]];
+
+    DynamicsUtils.createMuiPopup({
+      id: 'levelup-user-info-popup',
+      title: dialogText('userInfo.title'),
+      tables: [
+        {
+          title: dialogText('userInfo.tableTitle'),
+          headers: [dialogText('userInfo.fieldHeader'), dialogText('userInfo.valueHeader')],
+          rows: [
+            [dialogText('userInfo.userId'), userInfo.userId],
+            [dialogText('userInfo.userName'), userInfo.userName],
+            [
+              dialogText('userInfo.languageId'),
+              userInfo.languageId ? String(userInfo.languageId) : notAvailable,
+            ],
+            ...roleRows,
+          ],
+        },
+      ],
+      layoutMode: 'standard',
+      showOpenInNewTab: true,
+    });
+
+    return dialogText('userInfo.title');
+  }
+
+  /**
    * Check if the current user has a specific privilege
    */
   static async checkUserPrivilege(privilegeName: string): Promise<boolean> {

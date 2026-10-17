@@ -14,11 +14,10 @@ import {
 import { Translate as TranslateIcon, ViewSidebar as ViewSidebarIcon } from '@mui/icons-material';
 import { ExtensionConfigService, ExtensionConfig } from '#services/ExtensionConfigService';
 import { checkDynamicsViaXrm, getEnvironmentUrlFromXrm } from '#utils/dynamicsDetection';
-import { CurrentUserInfo, DynamicsAction } from '#types/global';
+import { DynamicsAction } from '#types/global';
 import { ThemeProvider } from '#contexts/ThemeContext';
 import { LanguageProvider, useLanguage } from '#contexts/LanguageContext';
 import { formActions, navigationActions, ActionConfig, localizeActions } from '#config/actions';
-import UserInfoDialog from '#components/UserInfoDialog';
 import UserRoleDialog from '#components/UserRoleDialog';
 import { UserToImpersonate } from '#hooks/useImpersonation';
 import { Language } from '../sidebar/i18n';
@@ -43,8 +42,6 @@ const PopupApp: React.FC = () => {
     message: string;
     severity: 'success' | 'info' | 'warning' | 'error';
   }>(null);
-  const [userInfoOpen, setUserInfoOpen] = useState(false);
-  const [userInfo, setUserInfo] = useState<CurrentUserInfo | null>(null);
   const [userRoleDialogOpen, setUserRoleDialogOpen] = useState(false);
 
   // Detect if running in Firefox
@@ -108,11 +105,6 @@ const PopupApp: React.FC = () => {
             console.log('Action response:', response);
             if (response?.success) {
               console.log(`✅ Action executed successfully: ${actionId}`);
-              // 用户信息动作返回数据后弹出详情对话框
-              if (actionId === 'admin:get-user-info') {
-                setUserInfo(response.data as CurrentUserInfo);
-                setUserInfoOpen(true);
-              }
               // popup 直连内容脚本，用户角色结果就是响应的 data 字符串
               if (actionId === 'admin:show-user-roles' && typeof response.data === 'string') {
                 showInlineToast(response.data, 'success');
@@ -502,11 +494,6 @@ const PopupApp: React.FC = () => {
           </Box>
         )}
       </Box>
-      <UserInfoDialog
-        open={userInfoOpen}
-        onClose={() => setUserInfoOpen(false)}
-        userInfo={userInfo}
-      />
       <UserRoleDialog
         open={userRoleDialogOpen}
         onClose={() => setUserRoleDialogOpen(false)}

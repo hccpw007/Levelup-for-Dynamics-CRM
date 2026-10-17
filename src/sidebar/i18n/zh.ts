@@ -441,13 +441,6 @@ export const zh: Record<TranslationKey, string> = {
   'userRoles.noUsers': '未找到匹配的用户',
   'userRoles.selected': '已选择：{name}（{email}）',
   'userRoles.loadFailed': '加载用户安全角色失败',
-  // 当前用户信息对话框字段
-  'userInfo.title': '当前用户信息',
-  'userInfo.userId': '用户 ID',
-  'userInfo.userName': '用户名',
-  'userInfo.languageId': '语言 ID',
-  'userInfo.roles': '安全角色',
-  'userInfo.noRoles': '未分配角色',
 
   // 顶栏主题切换
   'header.switchToLight': '切换到浅色模式',

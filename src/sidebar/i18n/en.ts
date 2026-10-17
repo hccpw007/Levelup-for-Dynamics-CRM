@@ -464,13 +464,6 @@ export const en = {
   'userRoles.noUsers': 'No matching users found',
   'userRoles.selected': 'Selected: {name} ({email})',
   'userRoles.loadFailed': 'Failed to load user security roles',
-  // Current user info dialog labels
-  'userInfo.title': 'Current User Info',
-  'userInfo.userId': 'User ID',
-  'userInfo.userName': 'User Name',
-  'userInfo.languageId': 'Language ID',
-  'userInfo.roles': 'Security Roles',
-  'userInfo.noRoles': 'No roles assigned',
 
   // Header theme toggle
   'header.switchToLight': 'Switch to light mode',
