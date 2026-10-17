@@ -15,6 +15,7 @@ import {
   Clear as ClearIcon,
 } from '@mui/icons-material';
 import { DynamicsAction } from '#types/global';
+import { useLanguage } from '#contexts/LanguageContext';
 import StandardActionButton, { StandardActionGrid } from '#components/StandardActionButton';
 
 interface ActionButton {
@@ -44,6 +45,7 @@ const RecentlyUsedComponent: React.FC<RecentlyUsedProps> = ({
   onActionClick,
   onActionUsed,
 }) => {
+  const { t } = useLanguage();
   const [expanded, setExpanded] = useState(true);
   const [recentActions, setRecentActions] = useState<RecentAction[]>([]);
 
@@ -195,7 +197,7 @@ const RecentlyUsedComponent: React.FC<RecentlyUsedProps> = ({
                 userSelect: 'none',
               }}
             >
-              Recently Used
+              {t('section.recentlyUsed')}
             </Typography>
             <Chip
               label={recentButtons.length}
@@ -212,7 +214,7 @@ const RecentlyUsedComponent: React.FC<RecentlyUsedProps> = ({
               }}
             />
             {recentButtons.length > 0 && (
-              <Tooltip title='Clear recent actions' placement='top'>
+              <Tooltip title={t('action.clearRecent')} placement='top'>
                 <IconButton
                   size='small'
                   onClick={e => {
@@ -257,13 +259,13 @@ const RecentlyUsedComponent: React.FC<RecentlyUsedProps> = ({
 
                 let timeLabel;
                 if (daysAgo > 0) {
-                  timeLabel = `${daysAgo}d ago`;
+                  timeLabel = t('recently.daysAgo', { count: daysAgo });
                 } else if (hoursAgo > 0) {
-                  timeLabel = `${hoursAgo}h ago`;
+                  timeLabel = t('recently.hoursAgo', { count: hoursAgo });
                 } else if (minutesAgo > 0) {
-                  timeLabel = `${minutesAgo}m ago`;
+                  timeLabel = t('recently.minutesAgo', { count: minutesAgo });
                 } else {
-                  timeLabel = 'Just now';
+                  timeLabel = t('recently.justNow');
                 }
 
                 return (

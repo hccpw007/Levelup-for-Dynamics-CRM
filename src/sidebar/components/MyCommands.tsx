@@ -42,12 +42,14 @@ import { githubApiService } from '#services/GitHubApiService';
 import CommandEditorDialog from '#components/CommandEditorDialog';
 import ShareCollectionDialog from '#components/ShareCollectionDialog';
 import StandardActionButton, { StandardActionGrid } from '#components/StandardActionButton';
+import { useLanguage } from '#contexts/LanguageContext';
 
 interface MyCommandsProps {
   onToast: (message: string, severity: 'success' | 'error' | 'warning' | 'info') => void;
 }
 
 const MyCommands: React.FC<MyCommandsProps> = ({ onToast }) => {
+  const { t } = useLanguage();
   const [commands, setCommands] = useState<CustomCommand[]>([]);
   const [selectedCommand, setSelectedCommand] = useState<CustomCommand | null>(null);
   const [menuAnchor, setMenuAnchor] = useState<HTMLElement | null>(null);
@@ -81,7 +83,7 @@ const MyCommands: React.FC<MyCommandsProps> = ({ onToast }) => {
       const commandsList = await CustomCommandsService.getAllCommands();
       setCommands(commandsList);
     } catch (error) {
-      onToast(`Failed to load commands: ${(error as Error).message}`, 'error');
+      onToast(t('commands.toast.loadFailed', { message: (error as Error).message }), 'error');
     }
   };
 
@@ -92,12 +94,15 @@ const MyCommands: React.FC<MyCommandsProps> = ({ onToast }) => {
       });
 
       if (result.success) {
-        onToast(`Command executed successfully`, 'success');
+        onToast(t('commands.toast.executeSuccess'), 'success');
       } else {
-        onToast(`Command execution failed: ${result.error}`, 'error');
+        onToast(
+          t('commands.toast.executeFailed', { message: result.error || t('sidebar.unknownError') }),
+          'error'
+        );
       }
     } catch (error) {
-      onToast(`Command execution failed: ${(error as Error).message}`, 'error');
+      onToast(t('commands.toast.executeFailed', { message: (error as Error).message }), 'error');
     }
   };
 
@@ -120,15 +125,15 @@ const MyCommands: React.FC<MyCommandsProps> = ({ onToast }) => {
     try {
       if (editorMode === 'create') {
         await CustomCommandsService.createCommand(command);
-        onToast('Command created successfully', 'success');
+        onToast(t('commands.toast.created'), 'success');
       } else if (editingCommand) {
         await CustomCommandsService.updateCommand(editingCommand.id, command);
-        onToast('Command updated successfully', 'success');
+        onToast(t('commands.toast.updated'), 'success');
       }
       await loadCommands();
       setEditorOpen(false);
     } catch (error) {
-      onToast(`Failed to save command: ${(error as Error).message}`, 'error');
+      onToast(t('commands.toast.saveFailed', { message: (error as Error).message }), 'error');
     }
   };
 
@@ -173,9 +178,9 @@ const MyCommands: React.FC<MyCommandsProps> = ({ onToast }) => {
     try {
       await CustomCommandsService.deleteCommand(selectedCommand.id);
       await loadCommands();
-      onToast('Command deleted successfully', 'success');
+      onToast(t('commands.toast.deleted'), 'success');
     } catch (error) {
-      onToast(`Failed to delete command: ${(error as Error).message}`, 'error');
+      onToast(t('commands.toast.deleteFailed', { message: (error as Error).message }), 'error');
     } finally {
       setDeleteDialogOpen(false);
       setSelectedCommand(null);
@@ -213,9 +218,9 @@ const MyCommands: React.FC<MyCommandsProps> = ({ onToast }) => {
       a.click();
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
-      onToast('Commands exported successfully', 'success');
+      onToast(t('commands.toast.exportSuccess'), 'success');
     } catch (error) {
-      onToast(`Export failed: ${(error as Error).message}`, 'error');
+      onToast(t('commands.toast.exportFailed', { message: (error as Error).message }), 'error');
     }
   };
 
@@ -233,7 +238,7 @@ const MyCommands: React.FC<MyCommandsProps> = ({ onToast }) => {
 
       await CustomCommandsService.importCommands(JSON.stringify(importPayload, null, 2));
       await loadCommands();
-      onToast(`Successfully imported ${commandsToImport.length} command(s)`, 'success');
+      onToast(t('commands.toast.importSuccess', { count: commandsToImport.length }), 'success');
 
       // Reset import state
       setImportDialogOpen(false);
@@ -242,7 +247,7 @@ const MyCommands: React.FC<MyCommandsProps> = ({ onToast }) => {
       setSelectedImportCommands(new Set());
       setImportUnderstand(false);
     } catch (error) {
-      onToast(`Import failed: ${(error as Error).message}`, 'error');
+      onToast(t('commands.toast.importFailed', { message: (error as Error).message }), 'error');
     }
   };
 
@@ -289,10 +294,10 @@ const MyCommands: React.FC<MyCommandsProps> = ({ onToast }) => {
       const result = await githubApiService.shareCollection(collectionData);
 
       if (result.success) {
-        onToast('Collection shared successfully with the community!', 'success');
+        onToast(t('commands.toast.shareSuccess'), 'success');
         setShareCollectionDialogOpen(false);
       } else {
-        throw new Error(result.error || 'Failed to share collection');
+        throw new Error(result.error || t('commands.toast.shareFailed'));
       }
     } catch (error) {
       console.error('Share collection failed:', error);
@@ -377,7 +382,7 @@ const MyCommands: React.FC<MyCommandsProps> = ({ onToast }) => {
           </Tooltip>
 
           {/* Menu Button */}
-          <Tooltip title='Command options'>
+          <Tooltip title={t('commands.options')}>
             <IconButton
               onClick={e => handleMenuOpen(e, command)}
               sx={{
@@ -454,7 +459,7 @@ const MyCommands: React.FC<MyCommandsProps> = ({ onToast }) => {
                   userSelect: 'none',
                 }}
               >
-                Commands
+                {t('commands.title')}
               </Typography>
               <Chip
                 label={commands.length}
@@ -473,7 +478,7 @@ const MyCommands: React.FC<MyCommandsProps> = ({ onToast }) => {
             </Box>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
               <Box display='flex' gap={1}>
-                <Tooltip title='Import Commands'>
+                <Tooltip title={t('commands.import')}>
                   <IconButton
                     size='small'
                     onClick={e => {
@@ -485,7 +490,7 @@ const MyCommands: React.FC<MyCommandsProps> = ({ onToast }) => {
                     <ImportIcon />
                   </IconButton>
                 </Tooltip>
-                <Tooltip title='Export Commands'>
+                <Tooltip title={t('commands.export')}>
                   <span>
                     <IconButton
                       size='small'
@@ -500,7 +505,7 @@ const MyCommands: React.FC<MyCommandsProps> = ({ onToast }) => {
                     </IconButton>
                   </span>
                 </Tooltip>
-                <Tooltip title='Share Collection'>
+                <Tooltip title={t('commands.shareCollection')}>
                   <span>
                     <IconButton
                       size='small'
@@ -515,7 +520,7 @@ const MyCommands: React.FC<MyCommandsProps> = ({ onToast }) => {
                     </IconButton>
                   </span>
                 </Tooltip>
-                <Tooltip title='Create New Command'>
+                <Tooltip title={t('commands.createNew')}>
                   <IconButton
                     size='small'
                     onClick={e => {
@@ -555,11 +560,10 @@ const MyCommands: React.FC<MyCommandsProps> = ({ onToast }) => {
                 >
                   <CodeIcon sx={{ fontSize: 48, mb: 2, opacity: 0.5 }} />
                   <Typography variant='body1' gutterBottom>
-                    No custom commands yet
+                    {t('commands.emptyTitle')}
                   </Typography>
                   <Typography variant='body2' textAlign='center'>
-                    Create your first custom command to get started with automating Dynamics 365
-                    tasks.
+                    {t('commands.emptyDesc')}
                   </Typography>
                   <Button
                     variant='contained'
@@ -567,7 +571,7 @@ const MyCommands: React.FC<MyCommandsProps> = ({ onToast }) => {
                     onClick={handleCreateCommand}
                     sx={{ mt: 2 }}
                   >
-                    Create Command
+                    {t('commands.createButton')}
                   </Button>
                 </Box>
               ) : (
@@ -593,11 +597,11 @@ const MyCommands: React.FC<MyCommandsProps> = ({ onToast }) => {
       >
         <MenuItem onClick={() => selectedCommand && handleEditCommand(selectedCommand)}>
           <EditIcon sx={{ mr: 1, fontSize: 20 }} />
-          Edit
+          {t('common.edit')}
         </MenuItem>
         <MenuItem onClick={() => selectedCommand && handleDeleteCommand(selectedCommand)}>
           <DeleteIcon sx={{ mr: 1, fontSize: 20 }} />
-          Delete
+          {t('common.delete')}
         </MenuItem>
       </Menu>
 
@@ -621,17 +625,16 @@ const MyCommands: React.FC<MyCommandsProps> = ({ onToast }) => {
 
       {/* Delete Confirmation Dialog */}
       <Dialog open={deleteDialogOpen} onClose={() => setDeleteDialogOpen(false)}>
-        <DialogTitle>Delete Command</DialogTitle>
+        <DialogTitle>{t('commands.deleteTitle')}</DialogTitle>
         <DialogContent>
           <Typography>
-            Are you sure you want to delete the command "{selectedCommand?.name}"? This action
-            cannot be undone.
+            {t('commands.deleteConfirm', { name: selectedCommand?.name || '' })}
           </Typography>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setDeleteDialogOpen(false)}>Cancel</Button>
+          <Button onClick={() => setDeleteDialogOpen(false)}>{t('common.cancel')}</Button>
           <Button onClick={confirmDeleteCommand} color='error' variant='contained'>
-            Delete
+            {t('common.delete')}
           </Button>
         </DialogActions>
       </Dialog>
@@ -649,12 +652,12 @@ const MyCommands: React.FC<MyCommandsProps> = ({ onToast }) => {
         <DialogTitle>
           <Box display='flex' alignItems='center' gap={1}>
             <ImportIcon />
-            Import Commands
+            {t('commands.importTitle')}
           </Box>
         </DialogTitle>
         <DialogContent>
           <Typography variant='body2' color='text.secondary' mb={2}>
-            Paste the exported JSON data below to import commands:
+            {t('commands.importInstructions')}
           </Typography>
 
           <Box
@@ -663,7 +666,7 @@ const MyCommands: React.FC<MyCommandsProps> = ({ onToast }) => {
             onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
               handleImportDataChange(e.target.value)
             }
-            placeholder='Paste exported command data here...'
+            placeholder={t('commands.importPlaceholder')}
             sx={{
               width: '100%',
               minHeight: 150,
@@ -693,8 +696,10 @@ const MyCommands: React.FC<MyCommandsProps> = ({ onToast }) => {
                 }}
               >
                 <Typography variant='subtitle1' sx={{ fontWeight: 600 }}>
-                  Select Commands to Import ({selectedImportCommands.size} of{' '}
-                  {importCommands.length} selected)
+                  {t('commands.importSelectCount', {
+                    selected: selectedImportCommands.size,
+                    total: importCommands.length,
+                  })}
                 </Typography>
                 <Button
                   size='small'
@@ -703,8 +708,8 @@ const MyCommands: React.FC<MyCommandsProps> = ({ onToast }) => {
                   onClick={handleImportSelectAll}
                 >
                   {selectedImportCommands.size === importCommands.length
-                    ? 'Deselect All'
-                    : 'Select All'}
+                    ? t('common.deselectAll')
+                    : t('common.selectAll')}
                 </Button>
               </Box>
 
@@ -733,7 +738,7 @@ const MyCommands: React.FC<MyCommandsProps> = ({ onToast }) => {
                             <Box>
                               <Typography variant='subtitle2'>{command.name}</Typography>
                               <Typography variant='body2' color='text.secondary'>
-                                {command.description || 'No description'}
+                                {command.description || t('common.noDescription')}
                               </Typography>
                             </Box>
                           }
@@ -749,17 +754,15 @@ const MyCommands: React.FC<MyCommandsProps> = ({ onToast }) => {
 
               <Alert severity='warning' icon={<WarningIcon />} sx={{ mb: 2 }}>
                 <Typography variant='body2' sx={{ fontWeight: 600, mb: 1 }}>
-                  Important: Review Code Before Importing
+                  {t('commands.warningTitle')}
                 </Typography>
                 <Typography variant='body2' component='div'>
                   <ul style={{ margin: 0, paddingLeft: '1.5rem' }}>
-                    <li>Imported commands will have access to your Dynamics 365 environment</li>
-                    <li>Only import commands from trusted sources you recognize</li>
-                    <li>Review the JavaScript code in each command before execution</li>
-                    <li>
-                      Commands may modify data, create records, or perform administrative actions
-                    </li>
-                    <li>You are responsible for any actions performed by imported commands</li>
+                    <li>{t('commands.warning1')}</li>
+                    <li>{t('commands.warning2')}</li>
+                    <li>{t('commands.warning3')}</li>
+                    <li>{t('commands.warning4')}</li>
+                    <li>{t('commands.warning5')}</li>
                   </ul>
                 </Typography>
               </Alert>
@@ -773,7 +776,7 @@ const MyCommands: React.FC<MyCommandsProps> = ({ onToast }) => {
                 }
                 label={
                   <Typography variant='body2' sx={{ fontWeight: 600 }}>
-                    I understand the risks and have reviewed the commands I'm importing
+                    {t('commands.understand')}
                   </Typography>
                 }
                 sx={{ mb: 1 }}
@@ -791,7 +794,7 @@ const MyCommands: React.FC<MyCommandsProps> = ({ onToast }) => {
               setImportUnderstand(false);
             }}
           >
-            Cancel
+            {t('common.cancel')}
           </Button>
           <Button
             onClick={handleImportCommands}
@@ -804,8 +807,9 @@ const MyCommands: React.FC<MyCommandsProps> = ({ onToast }) => {
             }
             startIcon={<ImportIcon />}
           >
-            Import {selectedImportCommands.size > 0 ? `(${selectedImportCommands.size})` : ''}{' '}
-            Commands
+            {selectedImportCommands.size > 0
+              ? t('commands.importButton', { count: selectedImportCommands.size })
+              : t('commands.importButtonBare')}
           </Button>
         </DialogActions>
       </Dialog>

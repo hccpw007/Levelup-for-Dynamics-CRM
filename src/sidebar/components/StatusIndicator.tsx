@@ -1,6 +1,7 @@
 import React from 'react';
 import { Box, Typography, CircularProgress } from '@mui/material';
 import { Circle as CircleIcon } from '@mui/icons-material';
+import { useLanguage } from '#contexts/LanguageContext';
 
 interface StatusIndicatorProps {
   loading: boolean;
@@ -15,12 +16,14 @@ const StatusIndicatorComponent: React.FC<StatusIndicatorProps> = ({
   environmentUrl,
   onOpenAdmin,
 }) => {
+  const { t } = useLanguage();
+
   if (loading) {
     return (
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
         <CircularProgress size={12} />
         <Typography variant='body2' sx={{ fontSize: '0.75rem' }}>
-          Checking...
+          {t('status.checking')}
         </Typography>
       </Box>
     );
@@ -57,7 +60,7 @@ const StatusIndicatorComponent: React.FC<StatusIndicatorProps> = ({
           display: 'flex',
           alignItems: 'center',
         }}
-        title={environmentUrl ? 'Open in Power Platform Admin Center' : undefined}
+        title={environmentUrl ? t('status.openAdmin') : undefined}
       >
         <Typography
           variant='body2'
@@ -72,7 +75,7 @@ const StatusIndicatorComponent: React.FC<StatusIndicatorProps> = ({
             flex: 1,
           }}
         >
-          {environmentUrl || (connected ? 'Connected' : 'Not Connected')}
+          {environmentUrl || (connected ? t('status.connected') : t('status.notConnected'))}
         </Typography>
       </Box>
     </Box>
@@ -82,4 +85,3 @@ const StatusIndicatorComponent: React.FC<StatusIndicatorProps> = ({
 const StatusIndicator = React.memo(StatusIndicatorComponent);
 
 export default StatusIndicator;
-

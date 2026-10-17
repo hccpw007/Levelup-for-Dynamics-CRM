@@ -26,6 +26,7 @@ import {
 } from '@mui/icons-material';
 import { CustomCommand } from '#types/custom-commands';
 import CodeMirrorEditor from './CodeMirrorEditor';
+import { useLanguage } from '#contexts/LanguageContext';
 
 interface CommandEditorDialogProps {
   open: boolean;
@@ -44,6 +45,7 @@ const CommandEditorDialogComponent: React.FC<CommandEditorDialogProps> = ({
   command,
   mode,
 }) => {
+  const { t } = useLanguage();
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [code, setCode] = useState('');
@@ -92,13 +94,13 @@ const CommandEditorDialogComponent: React.FC<CommandEditorDialogProps> = ({
     // Final validation
     if (!name.trim()) {
       console.log('[CommandEditorDialog] Validation failed: missing name');
-      setValidationErrors(['Command name is required']);
+      setValidationErrors([t('editor.error.nameRequired')]);
       return;
     }
 
     if (!code.trim()) {
       console.log('[CommandEditorDialog] Validation failed: missing code');
-      setValidationErrors(['Command code is required']);
+      setValidationErrors([t('editor.error.codeRequired')]);
       return;
     }
 
@@ -120,7 +122,7 @@ const CommandEditorDialogComponent: React.FC<CommandEditorDialogProps> = ({
       handleClose();
     } catch (error) {
       console.error('[CommandEditorDialog] onSave failed:', error);
-      setValidationErrors([`Failed to save command: ${(error as Error).message}`]);
+      setValidationErrors([t('editor.error.saveFailed', { message: (error as Error).message })]);
     } finally {
       setIsLoading(false);
     }
@@ -128,17 +130,17 @@ const CommandEditorDialogComponent: React.FC<CommandEditorDialogProps> = ({
 
   const handleTest = async () => {
     if (!code.trim()) {
-      setTestResult({ success: false, error: 'No code to test' });
+      setTestResult({ success: false, error: t('editor.error.noCodeToTest') });
       return;
     }
 
     if (validationErrors.length > 0) {
-      setTestResult({ success: false, error: 'Please fix validation errors before testing' });
+      setTestResult({ success: false, error: t('editor.error.fixValidation') });
       return;
     }
 
     if (!onTest) {
-      setTestResult({ success: false, error: 'Test functionality not available' });
+      setTestResult({ success: false, error: t('editor.error.testUnavailable') });
       return;
     }
 
@@ -151,7 +153,7 @@ const CommandEditorDialogComponent: React.FC<CommandEditorDialogProps> = ({
     } catch (error) {
       setTestResult({
         success: false,
-        error: `Test execution failed: ${(error as Error).message}`,
+        error: t('editor.error.testFailed', { message: (error as Error).message }),
       });
     } finally {
       setIsLoading(false);
@@ -168,7 +170,9 @@ const CommandEditorDialogComponent: React.FC<CommandEditorDialogProps> = ({
   };
 
   const getDialogTitle = () => {
-    return mode === 'create' ? 'Create Custom Command' : `Edit Command: ${command?.name}`;
+    return mode === 'create'
+      ? t('editor.createTitle')
+      : t('editor.editTitle', { name: command?.name || '' });
   };
 
   return (
@@ -199,7 +203,7 @@ const CommandEditorDialogComponent: React.FC<CommandEditorDialogProps> = ({
           <CodeIcon sx={{ color: 'primary.main' }} />
           <Typography variant='h6'>{getDialogTitle()}</Typography>
         </Box>
-        <Tooltip title='Close' arrow>
+        <Tooltip title={t('editor.close')} arrow>
           <IconButton onClick={handleClose} size='small'>
             <CloseIcon />
           </IconButton>
@@ -210,18 +214,18 @@ const CommandEditorDialogComponent: React.FC<CommandEditorDialogProps> = ({
         {/* Command Metadata */}
         <Box sx={{ display: 'flex', gap: 2, pt: 2 }}>
           <TextField
-            label='Command Name'
+            label={t('editor.name')}
             value={name}
             onChange={e => setName(e.target.value)}
             required
             fullWidth
             variant='outlined'
-            placeholder='e.g., Get Current User Info'
-            error={!name.trim() && validationErrors.some(e => e.includes('name'))}
-            helperText={!name.trim() ? 'Required field' : 'Unique name for your command'}
+            placeholder={t('editor.namePlaceholder')}
+            error={!name.trim() && validationErrors.length > 0}
+            helperText={!name.trim() ? t('common.required') : t('editor.nameHelper')}
           />
           <TextField
-            label='Icon'
+            label={t('editor.icon')}
             value={icon}
             onChange={e => {
               // Limit to 2 characters to keep it as emoji/icon
@@ -233,7 +237,7 @@ const CommandEditorDialogComponent: React.FC<CommandEditorDialogProps> = ({
               minWidth: 100,
               maxWidth: 100,
             }}
-            helperText='Enter emoji or 1-2 chars'
+            helperText={t('editor.iconHelper')}
             slotProps={{
               input: {
                 sx: {
@@ -248,15 +252,15 @@ const CommandEditorDialogComponent: React.FC<CommandEditorDialogProps> = ({
         </Box>
 
         <TextField
-          label='Description (Optional)'
+          label={t('editor.description')}
           value={description}
           onChange={e => setDescription(e.target.value)}
           fullWidth
           multiline
           rows={2}
           variant='outlined'
-          placeholder='Brief description of what this command does...'
-          helperText='Optional description to help you remember what this command does'
+          placeholder={t('editor.descriptionPlaceholder')}
+          helperText={t('editor.descriptionHelper')}
         />
 
         {/* Code Editor */}
@@ -279,11 +283,11 @@ const CommandEditorDialogComponent: React.FC<CommandEditorDialogProps> = ({
             sx={{ mt: 1 }}
           >
             <Typography variant='subtitle2' sx={{ fontWeight: 'bold' }}>
-              {testResult.success ? 'Test Successful' : 'Test Failed'}
+              {testResult.success ? t('editor.testSuccess') : t('editor.testFailed')}
             </Typography>
             {testResult.success && testResult.result !== undefined && (
               <Typography variant='body2' sx={{ mt: 0.5, fontFamily: 'monospace' }}>
-                Result: {JSON.stringify(testResult.result, null, 2)}
+                {t('editor.result', { result: JSON.stringify(testResult.result, null, 2) })}
               </Typography>
             )}
             {!testResult.success && testResult.error && (
@@ -298,7 +302,7 @@ const CommandEditorDialogComponent: React.FC<CommandEditorDialogProps> = ({
         {validationWarnings.length > 0 && (
           <Alert severity='warning' icon={<WarningIcon />}>
             <Typography variant='subtitle2' sx={{ fontWeight: 'bold' }}>
-              Warnings ({validationWarnings.length})
+              {t('editor.warnings', { count: validationWarnings.length })}
             </Typography>
             <Box component='ul' sx={{ mt: 0.5, mb: 0, pl: 2 }}>
               {validationWarnings.map((warning, index) => (
@@ -325,7 +329,7 @@ const CommandEditorDialogComponent: React.FC<CommandEditorDialogProps> = ({
             sx={{ mb: 1, display: 'flex', alignItems: 'center', gap: 1 }}
           >
             <CodeIcon fontSize='small' />
-            Quick Reference
+            {t('editor.quickReference')}
           </Typography>
           <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
             {[
@@ -353,7 +357,7 @@ const CommandEditorDialogComponent: React.FC<CommandEditorDialogProps> = ({
 
       <DialogActions sx={{ p: 2, gap: 1 }}>
         <Button onClick={handleClose} disabled={isLoading}>
-          Cancel
+          {t('common.cancel')}
         </Button>
 
         {onTest && (
@@ -363,7 +367,7 @@ const CommandEditorDialogComponent: React.FC<CommandEditorDialogProps> = ({
             startIcon={<TestIcon />}
             variant='outlined'
           >
-            Test Code
+            {t('editor.testCode')}
           </Button>
         )}
 
@@ -373,7 +377,11 @@ const CommandEditorDialogComponent: React.FC<CommandEditorDialogProps> = ({
           startIcon={<SaveIcon />}
           variant='contained'
         >
-          {isLoading ? 'Saving...' : mode === 'create' ? 'Create Command' : 'Update Command'}
+          {isLoading
+            ? t('common.saving')
+            : mode === 'create'
+              ? t('editor.createCommand')
+              : t('editor.updateCommand')}
         </Button>
       </DialogActions>
     </Dialog>

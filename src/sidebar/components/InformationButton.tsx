@@ -2,8 +2,10 @@ import React, { useState } from 'react';
 import { IconButton, Tooltip } from '@mui/material';
 import { Info as InfoIcon } from '@mui/icons-material';
 import InformationDialog from './InformationDialog';
+import { useLanguage } from '#contexts/LanguageContext';
 
 const InformationButton: React.FC = () => {
+  const { t } = useLanguage();
   const [dialogOpen, setDialogOpen] = useState(false);
 
   const handleClick = () => {
@@ -16,7 +18,7 @@ const InformationButton: React.FC = () => {
 
   return (
     <>
-      <Tooltip title='Extension information and stats' placement='top'>
+      <Tooltip title={t('sidebar.info')} placement='top'>
         <IconButton
           size='small'
           onClick={handleClick}

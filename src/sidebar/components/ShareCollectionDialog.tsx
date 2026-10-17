@@ -42,6 +42,8 @@ import {
 } from '@mui/icons-material';
 import { CustomCommand } from '#types/custom-commands';
 import { ShareCollectionData } from '#services/GitHubApiService';
+import { useLanguage } from '#contexts/LanguageContext';
+import { TranslationKey } from '../i18n';
 
 interface ShareCollectionDialogProps {
   open: boolean;
@@ -50,27 +52,27 @@ interface ShareCollectionDialogProps {
   onClose: () => void;
 }
 
-const categories = [
-  'Form Actions',
-  'Navigation',
-  'Data Management',
-  'UI Enhancement',
-  'Development Tools',
-  'Workflow Automation',
-  'Reporting & Analytics',
-  'User Management',
-  'Business Process',
-  'Other',
+const categories: { value: string; labelKey: TranslationKey }[] = [
+  { value: 'Form Actions', labelKey: 'share.category.formActions' },
+  { value: 'Navigation', labelKey: 'share.category.navigation' },
+  { value: 'Data Management', labelKey: 'share.category.dataManagement' },
+  { value: 'UI Enhancement', labelKey: 'share.category.uiEnhancement' },
+  { value: 'Development Tools', labelKey: 'share.category.developmentTools' },
+  { value: 'Workflow Automation', labelKey: 'share.category.workflowAutomation' },
+  { value: 'Reporting & Analytics', labelKey: 'share.category.reporting' },
+  { value: 'User Management', labelKey: 'share.category.userManagement' },
+  { value: 'Business Process', labelKey: 'share.category.businessProcess' },
+  { value: 'Other', labelKey: 'share.category.other' },
 ];
 
-const dynamicsVersions = [
-  'Any',
-  'Dynamics 365 Online',
-  'Dynamics 365 (on-premises)',
-  'Power Platform',
-  'Dynamics 365 Customer Engagement',
-  'Dynamics 365 Finance & Operations',
-  'Version 9.2+',
+const dynamicsVersions: { value: string; labelKey: TranslationKey }[] = [
+  { value: 'Any', labelKey: 'share.version.any' },
+  { value: 'Dynamics 365 Online', labelKey: 'share.version.online' },
+  { value: 'Dynamics 365 (on-premises)', labelKey: 'share.version.onPremises' },
+  { value: 'Power Platform', labelKey: 'share.version.powerPlatform' },
+  { value: 'Dynamics 365 Customer Engagement', labelKey: 'share.version.customerEngagement' },
+  { value: 'Dynamics 365 Finance & Operations', labelKey: 'share.version.financeOperations' },
+  { value: 'Version 9.2+', labelKey: 'share.version.v92' },
 ];
 
 const commonTags = [
@@ -89,7 +91,12 @@ const commonTags = [
   'utilities',
 ];
 
-const steps = ['Select Commands', 'Collection Details', 'Safety & Quality', 'Preview & Share'];
+const steps: TranslationKey[] = [
+  'share.stepSelect',
+  'share.stepDetails',
+  'share.stepSafety',
+  'share.stepPreview',
+];
 
 const ShareCollectionDialog: React.FC<ShareCollectionDialogProps> = ({
   open,
@@ -97,6 +104,7 @@ const ShareCollectionDialog: React.FC<ShareCollectionDialogProps> = ({
   onShare,
   onClose,
 }) => {
+  const { t } = useLanguage();
   const [activeStep, setActiveStep] = useState(0);
   const [selectedCommands, setSelectedCommands] = useState<Set<string>>(new Set());
   const [collectionName, setCollectionName] = useState('');
@@ -168,29 +176,29 @@ const ShareCollectionDialog: React.FC<ShareCollectionDialogProps> = ({
     switch (step) {
       case 0: // Select Commands
         if (selectedCommands.size === 0) {
-          newErrors.push('Please select at least one command to share');
+          newErrors.push(t('share.error.selectOne'));
         }
         break;
       case 1: // Collection Details
         if (!collectionName.trim()) {
-          newErrors.push('Collection name is required');
+          newErrors.push(t('share.error.nameRequired'));
         }
         if (!description.trim()) {
-          newErrors.push('Collection description is required');
+          newErrors.push(t('share.error.descRequired'));
         } else if (description.length < 20) {
-          newErrors.push('Description should be at least 20 characters');
+          newErrors.push(t('share.error.descLength'));
         }
         if (!author.trim()) {
-          newErrors.push('Author name is required');
+          newErrors.push(t('share.error.authorRequired'));
         }
         if (!category.trim()) {
-          newErrors.push('Category is required');
+          newErrors.push(t('share.error.categoryRequired'));
         }
         break;
       case 2: // Safety & Quality
         const requiredChecks = Object.values(safetyChecklist);
         if (!requiredChecks.every(checked => checked)) {
-          newErrors.push('All safety and quality items must be confirmed before sharing');
+          newErrors.push(t('share.error.safetyRequired'));
         }
         break;
     }
@@ -276,7 +284,7 @@ const ShareCollectionDialog: React.FC<ShareCollectionDialogProps> = ({
       setShareComplete(true);
       setActiveStep(steps.length); // Move to success step
     } catch (error) {
-      setErrors([`Failed to share collection: ${(error as Error).message}`]);
+      setErrors([t('share.error.shareFailed', { message: (error as Error).message })]);
     } finally {
       setIsSharing(false);
     }
@@ -292,7 +300,7 @@ const ShareCollectionDialog: React.FC<ShareCollectionDialogProps> = ({
         return (
           <Box>
             <Typography variant='body2' color='text.secondary' mb={2}>
-              Select the commands you want to include in this collection:
+              {t('share.selectDesc')}
             </Typography>
 
             <Box mb={2}>
@@ -302,10 +310,15 @@ const ShareCollectionDialog: React.FC<ShareCollectionDialogProps> = ({
                 onClick={handleSelectAll}
                 startIcon={<CollectionIcon />}
               >
-                {selectedCommands.size === commands.length ? 'Deselect All' : 'Select All'}
+                {selectedCommands.size === commands.length
+                  ? t('common.deselectAll')
+                  : t('common.selectAll')}
               </Button>
               <Typography variant='body2' color='text.secondary' mt={1}>
-                {selectedCommands.size} of {commands.length} commands selected
+                {t('share.selectedCount', {
+                  selected: selectedCommands.size,
+                  total: commands.length,
+                })}
               </Typography>
             </Box>
 
@@ -324,7 +337,7 @@ const ShareCollectionDialog: React.FC<ShareCollectionDialogProps> = ({
                         <Box>
                           <Typography variant='subtitle2'>{command.name}</Typography>
                           <Typography variant='body2' color='text.secondary'>
-                            {command.description || 'No description'}
+                            {command.description || t('common.noDescription')}
                           </Typography>
                         </Box>
                       }
@@ -342,49 +355,49 @@ const ShareCollectionDialog: React.FC<ShareCollectionDialogProps> = ({
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
             <TextField
               fullWidth
-              label='Collection Name *'
+              label={t('share.name')}
               value={collectionName}
               onChange={e => setCollectionName(e.target.value)}
-              placeholder='e.g., Lead Management Suite, Report Generation Tools'
-              helperText='A descriptive name for your command collection'
+              placeholder={t('share.namePlaceholder')}
+              helperText={t('share.nameHelper')}
               required
             />
 
             <TextField
               fullWidth
-              label='Collection Description *'
+              label={t('share.description')}
               value={description}
               onChange={e => setDescription(e.target.value)}
               multiline
               rows={3}
-              placeholder='Describe what this collection accomplishes and what business scenario it addresses...'
-              helperText='Explain the overall purpose, workflow, and benefits (minimum 50 characters)'
+              placeholder={t('share.descriptionPlaceholder')}
+              helperText={t('share.descriptionHelper')}
               required
             />
 
             <FormControl fullWidth required>
-              <InputLabel>Primary Category *</InputLabel>
+              <InputLabel>{t('share.category')}</InputLabel>
               <Select
                 value={category}
                 onChange={e => setCategory(e.target.value)}
-                label='Primary Category *'
+                label={t('share.category')}
               >
                 {categories.map(cat => (
-                  <MenuItem key={cat} value={cat}>
-                    {cat}
+                  <MenuItem key={cat.value} value={cat.value}>
+                    {t(cat.labelKey)}
                   </MenuItem>
                 ))}
               </Select>
-              <FormHelperText>Which category best fits this collection?</FormHelperText>
+              <FormHelperText>{t('share.categoryHelper')}</FormHelperText>
             </FormControl>
 
             <TextField
               fullWidth
-              label='Author Name *'
+              label={t('share.author')}
               value={author}
               onChange={e => setAuthor(e.target.value)}
-              placeholder='Your name or organization'
-              helperText='How would you like to be credited?'
+              placeholder={t('share.authorPlaceholder')}
+              helperText={t('share.authorHelper')}
               required
             />
 
@@ -407,29 +420,27 @@ const ShareCollectionDialog: React.FC<ShareCollectionDialogProps> = ({
               renderInput={params => (
                 <TextField
                   {...params}
-                  label='Tags'
-                  placeholder='e.g., workflow, automation, reporting'
-                  helperText='Add relevant tags separated by commas to help others find your collection'
+                  label={t('share.tags')}
+                  placeholder={t('share.tagsPlaceholder')}
+                  helperText={t('share.tagsHelper')}
                 />
               )}
             />
 
             <FormControl fullWidth>
-              <InputLabel>Dynamics 365/Power Apps Version</InputLabel>
+              <InputLabel>{t('share.version')}</InputLabel>
               <Select
                 value={dynamicsVersion}
                 onChange={e => setDynamicsVersion(e.target.value)}
-                label='Dynamics 365/Power Apps Version'
+                label={t('share.version')}
               >
                 {dynamicsVersions.map(version => (
-                  <MenuItem key={version} value={version}>
-                    {version}
+                  <MenuItem key={version.value} value={version.value}>
+                    {t(version.labelKey)}
                   </MenuItem>
                 ))}
               </Select>
-              <FormHelperText>
-                Which version(s) have you tested this collection with?
-              </FormHelperText>
+              <FormHelperText>{t('share.versionHelper')}</FormHelperText>
             </FormControl>
           </Box>
         );
@@ -438,23 +449,20 @@ const ShareCollectionDialog: React.FC<ShareCollectionDialogProps> = ({
         return (
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
             <Alert severity='info' icon={<SecurityIcon />}>
-              <Typography variant='body2'>
-                Please review and confirm all safety and quality requirements before sharing your
-                collection.
-              </Typography>
+              <Typography variant='body2'>{t('share.safetyInfo')}</Typography>
             </Alert>
 
             <TextField
               fullWidth
-              label='Contact Information (Optional)'
+              label={t('share.contact')}
               value={contactInfo}
               onChange={e => setContactInfo(e.target.value)}
-              placeholder='GitHub username (e.g., @yourusername) or email'
-              helperText='Optional: For follow-up questions (will be visible publicly and auto-filled in GitHub issue)'
+              placeholder={t('share.contactPlaceholder')}
+              helperText={t('share.contactHelper')}
             />
 
             <Typography variant='subtitle1' sx={{ mt: 2, mb: 1 }}>
-              Safety & Quality Checklist
+              {t('share.checklistTitle')}
             </Typography>
 
             <FormGroup>
@@ -467,7 +475,7 @@ const ShareCollectionDialog: React.FC<ShareCollectionDialogProps> = ({
                     }
                   />
                 }
-                label='All commands have been tested and work correctly together'
+                label={t('share.check.tested')}
                 required
               />
               <FormControlLabel
@@ -479,7 +487,7 @@ const ShareCollectionDialog: React.FC<ShareCollectionDialogProps> = ({
                     }
                   />
                 }
-                label='No commands contain sensitive data (URLs, passwords, personal info)'
+                label={t('share.check.noSensitiveData')}
                 required
               />
               <FormControlLabel
@@ -491,7 +499,7 @@ const ShareCollectionDialog: React.FC<ShareCollectionDialogProps> = ({
                     }
                   />
                 }
-                label='All code follows JavaScript best practices with helpful comments'
+                label={t('share.check.bestPractices')}
                 required
               />
               <FormControlLabel
@@ -503,7 +511,7 @@ const ShareCollectionDialog: React.FC<ShareCollectionDialogProps> = ({
                     }
                   />
                 }
-                label='Destructive operations have appropriate user confirmations'
+                label={t('share.check.confirmations')}
                 required
               />
               <FormControlLabel
@@ -515,7 +523,7 @@ const ShareCollectionDialog: React.FC<ShareCollectionDialogProps> = ({
                     }
                   />
                 }
-                label='I understand this will be shared publicly under the MIT license'
+                label={t('share.check.publicLicense')}
                 required
               />
             </FormGroup>
@@ -526,46 +534,43 @@ const ShareCollectionDialog: React.FC<ShareCollectionDialogProps> = ({
         return (
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
             <Alert severity='info' sx={{ mb: 2 }}>
-              <Typography variant='body2'>
-                Your collection will be shared to the Level Up Community repository as a GitHub
-                Issue. The community can then review, test, and include it in the official
-                collection.
-              </Typography>
+              <Typography variant='body2'>{t('share.previewInfo')}</Typography>
             </Alert>
 
             <Card variant='outlined'>
               <CardContent>
                 <Typography variant='h6' gutterBottom>
                   <CollectionIcon sx={{ mr: 1, verticalAlign: 'middle' }} />
-                  Collection Preview
+                  {t('share.collectionPreview')}
                 </Typography>
 
                 <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, mb: 2 }}>
                   <Typography variant='body2'>
-                    <strong>Name:</strong> {collectionName}
+                    <strong>{t('share.nameLabel')}:</strong> {collectionName}
                   </Typography>
                   <Typography variant='body2'>
-                    <strong>Category:</strong> {category}
+                    <strong>{t('share.categoryLabel')}:</strong> {category}
                   </Typography>
                   <Typography variant='body2'>
-                    <strong>Author:</strong> {author}
+                    <strong>{t('share.authorLabel')}:</strong> {author}
                   </Typography>
                   <Typography variant='body2'>
-                    <strong>Dynamics Version:</strong> {dynamicsVersion}
+                    <strong>{t('share.versionLabel')}:</strong> {dynamicsVersion}
                   </Typography>
                   <Typography variant='body2'>
-                    <strong>Commands:</strong> {selectedCommands.size} selected
+                    <strong>{t('share.commandsLabel')}:</strong>{' '}
+                    {t('share.commandsSelected', { count: selectedCommands.size })}
                   </Typography>
                 </Box>
 
                 <Typography variant='body2' paragraph>
-                  <strong>Description:</strong> {description}
+                  <strong>{t('share.descriptionLabel')}:</strong> {description}
                 </Typography>
 
                 {tags.length > 0 && (
                   <Box sx={{ mb: 2 }}>
                     <Typography variant='body2' sx={{ mb: 1 }}>
-                      <strong>Tags:</strong>
+                      <strong>{t('share.tagsLabel')}:</strong>
                     </Typography>
                     <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
                       {tags.map(tag => (
@@ -578,7 +583,7 @@ const ShareCollectionDialog: React.FC<ShareCollectionDialogProps> = ({
             </Card>
 
             <Typography variant='subtitle2' mb={1}>
-              Included Commands:
+              {t('share.includedCommands')}
             </Typography>
             <List dense>
               {commands
@@ -590,7 +595,7 @@ const ShareCollectionDialog: React.FC<ShareCollectionDialogProps> = ({
                     </ListItemIcon>
                     <ListItemText
                       primary={command.name}
-                      secondary={command.description || 'No description'}
+                      secondary={command.description || t('common.noDescription')}
                     />
                   </ListItem>
                 ))}
@@ -610,11 +615,10 @@ const ShareCollectionDialog: React.FC<ShareCollectionDialogProps> = ({
         <DialogContent sx={{ textAlign: 'center', py: 4 }}>
           <SuccessIcon sx={{ fontSize: 64, color: 'success.main', mb: 2 }} />
           <Typography variant='h5' gutterBottom>
-            GitHub Issue Form Opened!
+            {t('share.successTitle')}
           </Typography>
           <Typography variant='body1' color='text.secondary' paragraph>
-            A new browser tab has opened with a pre-filled GitHub Issue form. Review the content and
-            submit the issue to share your collection with the community.
+            {t('share.successDesc')}
           </Typography>
           <Button
             variant='outlined'
@@ -624,11 +628,11 @@ const ShareCollectionDialog: React.FC<ShareCollectionDialogProps> = ({
             rel='noopener noreferrer'
             sx={{ mb: 2 }}
           >
-            Open GitHub Issue Form
+            {t('share.openIssueForm')}
           </Button>
           <Box>
             <Button onClick={handleClose} variant='contained'>
-              Close
+              {t('common.close')}
             </Button>
           </Box>
         </DialogContent>
@@ -649,26 +653,26 @@ const ShareCollectionDialog: React.FC<ShareCollectionDialogProps> = ({
       <DialogTitle>
         <Box display='flex' alignItems='center' gap={1}>
           <ShareIcon />
-          Share Command Collection
+          {t('share.title')}
         </Box>
       </DialogTitle>
 
       <DialogContent>
         <Stepper activeStep={activeStep} orientation='vertical'>
-          {steps.map((label, index) => (
-            <Step key={label}>
-              <StepLabel>{label}</StepLabel>
+          {steps.map((labelKey, index) => (
+            <Step key={labelKey}>
+              <StepLabel>{t(labelKey)}</StepLabel>
               <StepContent>
                 {renderStepContent(index)}
                 <Box sx={{ mt: 2, display: 'flex', gap: 1 }}>
                   {index > 0 && (
                     <Button onClick={handleBack} variant='outlined'>
-                      Back
+                      {t('common.back')}
                     </Button>
                   )}
                   {index < steps.length - 1 ? (
                     <Button onClick={handleNext} variant='contained'>
-                      Next
+                      {t('common.next')}
                     </Button>
                   ) : (
                     <Button
@@ -677,7 +681,7 @@ const ShareCollectionDialog: React.FC<ShareCollectionDialogProps> = ({
                       disabled={isSharing || selectedCommands.size === 0}
                       startIcon={isSharing ? <CircularProgress size={20} /> : <SendIcon />}
                     >
-                      {isSharing ? 'Opening GitHub...' : 'Open GitHub Issue Form'}
+                      {isSharing ? t('share.openingGitHub') : t('share.openIssueForm')}
                     </Button>
                   )}
                 </Box>
@@ -697,7 +701,7 @@ const ShareCollectionDialog: React.FC<ShareCollectionDialogProps> = ({
 
       <DialogActions>
         <Button onClick={handleClose} disabled={isSharing}>
-          Cancel
+          {t('common.cancel')}
         </Button>
       </DialogActions>
     </Dialog>

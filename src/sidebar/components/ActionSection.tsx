@@ -22,6 +22,7 @@ import {
   Clear as ClearIcon,
 } from '@mui/icons-material';
 import { DynamicsAction } from '#types/global';
+import { useLanguage } from '#contexts/LanguageContext';
 import StandardActionButton, { StandardActionGrid } from '#components/StandardActionButton';
 
 interface ActionButton {
@@ -50,6 +51,7 @@ const ActionSectionComponent: React.FC<ActionSectionProps> = ({
   favoriteIds,
   sectionColor = 'form',
 }) => {
+  const { t } = useLanguage();
   const [expanded, setExpanded] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
@@ -115,11 +117,11 @@ const ActionSectionComponent: React.FC<ActionSectionProps> = ({
           <Box sx={{ textAlign: 'center', color: 'text.secondary' }}>
             <SearchIcon sx={{ fontSize: '2rem', mb: 1, opacity: 0.5 }} />
             <Typography variant='body2' sx={{ mb: 2 }}>
-              No actions found for "{searchTerm}"
+              {t('section.noActionsFound', { term: searchTerm })}
             </Typography>
             <Box sx={{ display: 'flex', justifyContent: 'center', gap: 1 }}>
               <Chip
-                label={`Clear "${searchTerm}"`}
+                label={t('section.clearSearch', { term: searchTerm })}
                 onDelete={clearSearch}
                 color='primary'
                 variant='outlined'
@@ -230,7 +232,7 @@ const ActionSectionComponent: React.FC<ActionSectionProps> = ({
             <Box sx={{ mb: 2, display: 'flex', gap: 1, alignItems: 'center', flexWrap: 'wrap' }}>
               <TextField
                 size='small'
-                placeholder={`Search ${title.toLowerCase()}...`}
+                placeholder={t('section.searchPlaceholder', { title: title.toLowerCase() })}
                 value={searchTerm}
                 onChange={e => setSearchTerm(e.target.value)}
                 InputProps={{
@@ -300,10 +302,10 @@ const ActionSectionComponent: React.FC<ActionSectionProps> = ({
                   },
                 }}
               >
-                <ToggleButton value='grid' aria-label='grid view'>
+                <ToggleButton value='grid' aria-label={t('view.grid')}>
                   <GridViewIcon fontSize='small' />
                 </ToggleButton>
-                <ToggleButton value='list' aria-label='list view'>
+                <ToggleButton value='list' aria-label={t('view.list')}>
                   <ListViewIcon fontSize='small' />
                 </ToggleButton>
               </ToggleButtonGroup>
@@ -366,6 +368,8 @@ const ActionButtonGrid: React.FC<{
   onFavoriteToggle: (id: DynamicsAction) => void;
   sectionColor: 'form' | 'navigation' | 'debugging';
 }> = ({ button, isFavorite, onActionClick, onFavoriteToggle }) => {
+  const { t } = useLanguage();
+
   return (
     <Box
       sx={{
@@ -429,7 +433,7 @@ const ActionButtonGrid: React.FC<{
           </IconButton>
         </Tooltip>
         <Tooltip
-          title={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
+          title={isFavorite ? t('action.removeFavorite') : t('action.addFavorite')}
           arrow
           placement='top'
         >
@@ -478,6 +482,8 @@ const ActionButtonList: React.FC<{
   onFavoriteToggle: (id: DynamicsAction) => void;
   sectionColor: 'form' | 'navigation' | 'debugging';
 }> = ({ button, isFavorite, onActionClick, onFavoriteToggle }) => {
+  const { t } = useLanguage();
+
   return (
     <Box
       sx={{
@@ -580,4 +586,3 @@ const ActionButtonList: React.FC<{
 const ActionSection = React.memo(ActionSectionComponent);
 
 export default ActionSection;
-

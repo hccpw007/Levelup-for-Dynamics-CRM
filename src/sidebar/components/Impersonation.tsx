@@ -4,8 +4,10 @@ import { useImpersonation, UserToImpersonate } from '#hooks/useImpersonation';
 import PrivilegeWarning from './PrivilegeWarning';
 import ImpersonationStatusBanner from './ImpersonationStatusBanner';
 import UserSearchInput from './UserSearchInput';
+import { useLanguage } from '#contexts/LanguageContext';
 
 const Impersonation = () => {
+  const { t } = useLanguage();
   const {
     hasImpersonationPrivilege,
     isCheckingPrivilege,
@@ -42,17 +44,19 @@ const Impersonation = () => {
             component='h2'
             sx={{ mb: 0, fontSize: '1rem', fontWeight: '600' }}
           >
-            Impersonation
+            {t('impersonation.title')}
           </Typography>
           {(hasImpersonationPrivilege === null || isCheckingPrivilege) && (
             <CircularProgress size={20} />
           )}
-          {hasImpersonationPrivilege === false && <Chip label='No Access' color='error' />}
+          {hasImpersonationPrivilege === false && (
+            <Chip label={t('impersonation.noAccess')} color='error' />
+          )}
           {hasImpersonationPrivilege === true && (
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
               {isCheckingStatus && <CircularProgress size={16} />}
               <Chip
-                label={isImpersonating ? 'Active' : 'Inactive'}
+                label={isImpersonating ? t('impersonation.active') : t('impersonation.inactive')}
                 color={isImpersonating ? 'success' : 'default'}
               />
             </Box>
@@ -107,4 +111,3 @@ const Impersonation = () => {
 };
 
 export default Impersonation;
-

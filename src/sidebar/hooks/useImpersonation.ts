@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { messageService } from '#services/MessageService';
 import { debounce } from '#utils/debounce';
+import { useLanguage } from '#contexts/LanguageContext';
 import { useFavoriteUsers, FavoriteUser } from './useFavoriteUsers';
 
 export interface UserToImpersonate {
@@ -52,6 +53,8 @@ export interface UseImpersonationReturn {
 }
 
 export const useImpersonation = (): UseImpersonationReturn => {
+  const { t } = useLanguage();
+
   // Privilege state
   const [hasImpersonationPrivilege, setHasImpersonationPrivilege] = useState<boolean | null>(null);
   const [isCheckingPrivilege, setIsCheckingPrivilege] = useState(false);
@@ -199,11 +202,7 @@ export const useImpersonation = (): UseImpersonationReturn => {
   const startImpersonation = useCallback(
     async (user: UserToImpersonate) => {
       if (!user.azureactivedirectoryobjectid) {
-        setError(
-          `Selected user does not have a valid Azure AD Object ID. Available properties: ${Object.keys(
-            user
-          ).join(', ')}`
-        );
+        setError(t('impersonation.error.noAadId'));
         return;
       }
 
@@ -226,16 +225,19 @@ export const useImpersonation = (): UseImpersonationReturn => {
           // and then refresh the previous tab if needed. For normal flow, reload current.
           await reloadCurrentTab();
         } else {
-          setError(response.error || 'Failed to start impersonation');
+          setError(response.error || t('impersonation.error.startFailed'));
         }
       } catch (error) {
         console.error('Error starting impersonation:', error);
         setError(
-          `Failed to start impersonation: ${error instanceof Error ? error.message : 'Unknown error'}`
+          t('impersonation.error.withMessage', {
+            message: t('impersonation.error.startFailed'),
+            detail: error instanceof Error ? error.message : t('sidebar.unknownError'),
+          })
         );
       }
     },
-    [reloadCurrentTab]
+    [reloadCurrentTab, t]
   );
 
   const stopImpersonation = useCallback(async () => {
@@ -254,15 +256,18 @@ export const useImpersonation = (): UseImpersonationReturn => {
         await reloadCurrentTab();
       } else {
         console.error('Failed to stop impersonation:', response.error);
-        setError(response.error || 'Failed to stop impersonation');
+        setError(response.error || t('impersonation.error.stopFailed'));
       }
     } catch (error) {
       console.error('Error stopping impersonation:', error);
       setError(
-        `Failed to stop impersonation: ${error instanceof Error ? error.message : 'Unknown error'}`
+        t('impersonation.error.withMessage', {
+          message: t('impersonation.error.stopFailed'),
+          detail: error instanceof Error ? error.message : t('sidebar.unknownError'),
+        })
       );
     }
-  }, [reloadCurrentTab]);
+  }, [reloadCurrentTab, t]);
 
   const searchUsers = useCallback(
     debounce(async (query: string) => {
@@ -287,20 +292,25 @@ export const useImpersonation = (): UseImpersonationReturn => {
           setSearchMessage(searchResult?.totalResultsMessage || '');
           setHasMoreResults(Boolean(searchResult?.hasMoreResults));
         } else {
-          setError(response?.error || 'Failed to search users');
+          setError(response?.error || t('impersonation.error.searchFailed'));
           setSearchResults([]);
           setHasMoreResults(false);
         }
       } catch (error) {
         console.error('Error searching users:', error);
-        setError(`Search failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+        setError(
+          t('impersonation.error.withMessage', {
+            message: t('impersonation.error.searchFailed'),
+            detail: error instanceof Error ? error.message : t('sidebar.unknownError'),
+          })
+        );
         setSearchResults([]);
         setHasMoreResults(false);
       } finally {
         setIsSearching(false);
       }
     }, 500),
-    []
+    [t]
   );
 
   const clearError = useCallback(() => {

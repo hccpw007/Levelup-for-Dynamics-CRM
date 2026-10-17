@@ -6,8 +6,9 @@ import { DynamicsAction, ExtensionDisplayMode } from '#types/global';
 import { messageService } from '#services/MessageService';
 import { ExtensionConfigService, ExtensionConfig } from '#services/ExtensionConfigService';
 import { ThemeProvider } from '#contexts/ThemeContext';
+import { LanguageProvider, useLanguage } from '#contexts/LanguageContext';
 import { checkDynamicsViaXrm, getEnvironmentUrlFromXrm } from '#utils/dynamicsDetection';
-import { formActions, navigationActions, debuggingActions } from '#config/actions';
+import { formActions, navigationActions, debuggingActions, localizeActions } from '#config/actions';
 import ThemeSwitchButtons from '#components/ThemeSwitchButtons';
 import ExtendedDisplayModeSelector from '#components/ExtendedDisplayModeSelector';
 import StatusIndicator from '#components/StatusIndicator';
@@ -21,8 +22,10 @@ import InlineAlert from '#components/InlineAlert';
 import MyCommands from '#components/MyCommands';
 import RecentlyUsed from '#components/RecentlyUsed';
 import InformationButton from '#components/InformationButton';
+import LanguageSelector from '#components/LanguageSelector';
 
 const App: React.FC = () => {
+  const { t } = useLanguage();
   const [loadingOpen, setLoadingOpen] = useState(false);
   const [toastOpen, setToastOpen] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
@@ -65,10 +68,10 @@ const App: React.FC = () => {
     );
   };
 
-  // Memoize action arrays for better performance
-  const memoizedFormActions = useMemo(() => formActions, []);
-  const memoizedNavigationActions = useMemo(() => navigationActions, []);
-  const memoizedDebuggingActions = useMemo(() => debuggingActions, []);
+  // Resolve action labels for the active language (also memoized for performance)
+  const memoizedFormActions = useMemo(() => localizeActions(formActions, t), [t]);
+  const memoizedNavigationActions = useMemo(() => localizeActions(navigationActions, t), [t]);
+  const memoizedDebuggingActions = useMemo(() => localizeActions(debuggingActions, t), [t]);
 
   useEffect(() => {
     // Use shared helpers for detection and environment URL extraction
@@ -216,7 +219,7 @@ const App: React.FC = () => {
 
   const handleActionClick = async (id: DynamicsAction) => {
     if (!isConnected) {
-      setToastMessage('Please navigate to a Dynamics 365/Power Apps page to use this feature');
+      setToastMessage(t('sidebar.navigateToDynamics'));
       setToastSeverity('warning');
       setToastOpen(true);
       return;
@@ -225,10 +228,7 @@ const App: React.FC = () => {
     // Check if this is a form action and do basic validation
     if (id.startsWith('form:')) {
       if (!isConnected) {
-        showInlineAlert(
-          'Form actions can only be used on Dynamics 365/Power Apps pages.',
-          'warning'
-        );
+        showInlineAlert(t('sidebar.formOnly'), 'warning');
         return;
       }
     }
@@ -260,12 +260,18 @@ const App: React.FC = () => {
     try {
       const response = await messageService.sendMessage(id);
       if (!response.success) {
-        setToastMessage(`Action failed: ${response.error || 'Unknown error'}`);
+        setToastMessage(
+          t('sidebar.actionFailed', { error: response.error || t('sidebar.unknownError') })
+        );
         setToastSeverity('error');
         setToastOpen(true);
       }
     } catch (error) {
-      setToastMessage(`Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      setToastMessage(
+        t('sidebar.actionFailed', {
+          error: error instanceof Error ? error.message : t('sidebar.unknownError'),
+        })
+      );
       setToastSeverity('error');
       setToastOpen(true);
     } finally {
@@ -276,14 +282,14 @@ const App: React.FC = () => {
   const handleDialogSubmit = async () => {
     if (dialogType === 'open-by-id') {
       if (!entityName.trim() || !recordId.trim()) {
-        setToastMessage('Entity name and record ID are required');
+        setToastMessage(t('sidebar.entityAndIdRequired'));
         setToastSeverity('error');
         setToastOpen(true);
         return;
       }
     } else if (dialogType === 'new-record' || dialogType === 'open-list') {
       if (!entityName.trim()) {
-        setToastMessage('Entity name is required');
+        setToastMessage(t('sidebar.entityRequired'));
         setToastSeverity('error');
         setToastOpen(true);
         return;
@@ -315,13 +321,13 @@ const App: React.FC = () => {
         let successMessage = '';
         switch (dialogType) {
           case 'open-by-id':
-            successMessage = `Record opened: ${entityName} (${recordId})`;
+            successMessage = t('sidebar.recordOpened', { entity: entityName, id: recordId });
             break;
           case 'new-record':
-            successMessage = `New ${entityName} record created`;
+            successMessage = t('sidebar.recordCreated', { entity: entityName });
             break;
           case 'open-list':
-            successMessage = `${entityName} list opened`;
+            successMessage = t('sidebar.listOpened', { entity: entityName });
             break;
         }
         setToastMessage(successMessage);
@@ -330,12 +336,18 @@ const App: React.FC = () => {
         setEntityName('');
         setRecordId('');
       } else {
-        setToastMessage(`Action failed: ${response.error || 'Unknown error'}`);
+        setToastMessage(
+          t('sidebar.actionFailed', { error: response.error || t('sidebar.unknownError') })
+        );
         setToastSeverity('error');
         setToastOpen(true);
       }
     } catch (error) {
-      setToastMessage(`Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      setToastMessage(
+        t('sidebar.actionFailed', {
+          error: error instanceof Error ? error.message : t('sidebar.unknownError'),
+        })
+      );
       setToastSeverity('error');
       setToastOpen(true);
     } finally {
@@ -351,7 +363,7 @@ const App: React.FC = () => {
 
   const openAdminCenter = async () => {
     if (!isConnected) {
-      setToastMessage('Please navigate to a Dynamics 365/Power Apps page to use this feature');
+      setToastMessage(t('sidebar.navigateToDynamics'));
       setToastSeverity('warning');
       setToastOpen(true);
       return;
@@ -435,7 +447,7 @@ const App: React.FC = () => {
               <>
                 {extensionConfig.showFormSection !== false && filteredFormActions.length > 0 && (
                   <ActionSection
-                    title='Form'
+                    title={t('section.formActions')}
                     buttons={filteredFormActions}
                     onActionClick={handleActionClick}
                     onFavoriteToggle={handleFavoriteToggle}
@@ -445,7 +457,7 @@ const App: React.FC = () => {
                 {extensionConfig.showNavigationSection !== false &&
                   filteredNavigationActions.length > 0 && (
                     <ActionSection
-                      title='Navigation'
+                      title={t('section.navigation')}
                       buttons={filteredNavigationActions}
                       onActionClick={handleActionClick}
                       onFavoriteToggle={handleFavoriteToggle}
@@ -455,7 +467,7 @@ const App: React.FC = () => {
                 {extensionConfig.showDebuggingSection !== false &&
                   filteredDebuggingActions.length > 0 && (
                     <ActionSection
-                      title='Debugging'
+                      title={t('section.debugging')}
                       buttons={filteredDebuggingActions}
                       onActionClick={handleActionClick}
                       onFavoriteToggle={handleFavoriteToggle}
@@ -480,11 +492,10 @@ const App: React.FC = () => {
             }}
           >
             <Box component='p' sx={{ margin: 0, fontWeight: 500 }}>
-              Level Up is available only on Microsoft Dynamics 365/Power Apps pages.
+              {t('status.notDynamicsTitle')}
             </Box>
             <Box component='p' sx={{ fontSize: '0.875rem', margin: 0 }}>
-              Open or switch to a Dynamics 365/Power Apps tab to access actions, tools, and
-              commands.
+              {t('status.notDynamicsDesc')}
             </Box>
           </Box>
         )}
@@ -496,11 +507,11 @@ const App: React.FC = () => {
         onSubmit={handleDialogSubmit}
         title={
           dialogType === 'open-by-id'
-            ? 'Open Record by ID'
+            ? t('sidebar.dialog.openById')
             : dialogType === 'new-record'
-              ? 'Create New Record'
+              ? t('sidebar.dialog.newRecord')
               : dialogType === 'open-list'
-                ? 'Open Entity List'
+                ? t('sidebar.dialog.openList')
                 : ''
         }
         type={dialogType}
@@ -534,7 +545,7 @@ const App: React.FC = () => {
           />
         </Box>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          <Tooltip title='Join Power Platform Discord Community' placement='top'>
+          <Tooltip title={t('sidebar.discord')} placement='top'>
             <IconButton
               size='small'
               onClick={openDiscord}
@@ -549,7 +560,7 @@ const App: React.FC = () => {
               <Forum fontSize='small' />
             </IconButton>
           </Tooltip>
-          <Tooltip title='Report an issue on GitHub' placement='top'>
+          <Tooltip title={t('sidebar.github')} placement='top'>
             <IconButton
               size='small'
               onClick={openGitHubIssues}
@@ -565,6 +576,7 @@ const App: React.FC = () => {
             </IconButton>
           </Tooltip>
           <InformationButton />
+          <LanguageSelector />
           <ExtendedDisplayModeSelector
             currentMode={extensionConfig.displayMode}
             onModeChange={handleDisplayModeChange}
@@ -588,11 +600,12 @@ const container = document.getElementById('root');
 if (container) {
   const root = createRoot(container);
   root.render(
-    <ThemeProvider>
-      <App />
-    </ThemeProvider>
+    <LanguageProvider>
+      <ThemeProvider>
+        <App />
+      </ThemeProvider>
+    </LanguageProvider>
   );
 }
 
 export default App;
-

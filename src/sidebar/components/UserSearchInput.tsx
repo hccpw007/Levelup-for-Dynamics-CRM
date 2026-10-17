@@ -16,6 +16,7 @@ import {
 import { Person as UserIcon, Favorite as HeartIcon } from '@mui/icons-material';
 import { UserToImpersonate } from '#hooks/useImpersonation';
 import { FavoriteUser } from '#hooks/useFavoriteUsers';
+import { useLanguage } from '#contexts/LanguageContext';
 
 interface UserSearchInputProps {
   searchResults: UserToImpersonate[];
@@ -44,6 +45,7 @@ const UserSearchInput: React.FC<UserSearchInputProps> = ({
   onRemoveFromFavorites,
   isFavorite,
 }) => {
+  const { t } = useLanguage();
   const [searchInput, setSearchInput] = useState('');
   const [selectedUser, setSelectedUser] = useState<UserToImpersonate | null>(null);
 
@@ -65,7 +67,7 @@ const UserSearchInput: React.FC<UserSearchInputProps> = ({
       }
 
       if (filteredFavorites.length > 0) {
-        options.push('Favorites');
+        options.push(t('impersonation.favoritesGroup'));
         options.push(...filteredFavorites);
       }
     }
@@ -79,14 +81,14 @@ const UserSearchInput: React.FC<UserSearchInputProps> = ({
 
       if (nonFavoriteResults.length > 0) {
         if (options.length > 0) {
-          options.push('Search Results');
+          options.push(t('impersonation.searchResultsGroup'));
         }
         options.push(...nonFavoriteResults);
       }
     }
 
     return options;
-  }, [favoriteUsers, searchInput, searchResults]);
+  }, [favoriteUsers, searchInput, searchResults, t]);
 
   // Filter options to get only UserToImpersonate objects
   const userOptions = useMemo(
@@ -170,22 +172,22 @@ const UserSearchInput: React.FC<UserSearchInputProps> = ({
             }
           }}
           loading={isSearching}
-          loadingText='Searching users...'
+          loadingText={t('impersonation.searchingUsers')}
           noOptionsText={
             searchInput.length < 2
               ? favoriteUsers.length > 0
-                ? 'Your favorite users are shown above. Type to search for more users.'
-                : 'Type at least 2 characters to search for users'
-              : 'No users found'
+                ? t('impersonation.noOptionsFavorites')
+                : t('impersonation.noOptionsMin')
+              : t('impersonation.noUsers')
           }
           clearOnBlur={false}
           selectOnFocus={false}
           disableClearable={false}
           groupBy={option => {
             if (favoriteUsers.some(fav => fav.systemuserid === option.systemuserid)) {
-              return 'Favorites';
+              return t('impersonation.favoritesGroup');
             }
-            return searchInput.length >= 2 ? 'Search Results' : '';
+            return searchInput.length >= 2 ? t('impersonation.searchResultsGroup') : '';
           }}
           renderGroup={params => (
             <Box key={params.key}>
@@ -201,7 +203,7 @@ const UserSearchInput: React.FC<UserSearchInputProps> = ({
                     gap: 1,
                   }}
                 >
-                  {params.group === 'Favorites' && (
+                  {params.group === t('impersonation.favoritesGroup') && (
                     <HeartIcon
                       sx={{
                         color: 'error.main', // Use theme error color instead of hardcoded red
@@ -210,9 +212,9 @@ const UserSearchInput: React.FC<UserSearchInputProps> = ({
                     />
                   )}
                   {params.group}
-                  {params.group === 'Favorites' && (
+                  {params.group === t('impersonation.favoritesGroup') && (
                     <Typography variant='caption' sx={{ ml: 'auto', color: 'text.secondary' }}>
-                      {favoriteUsers.length} saved
+                      {t('impersonation.savedCount', { count: favoriteUsers.length })}
                     </Typography>
                   )}
                 </ListSubheader>
@@ -225,13 +227,13 @@ const UserSearchInput: React.FC<UserSearchInputProps> = ({
               {...params}
               variant='outlined'
               size='small'
-              label='Search Users'
+              label={t('impersonation.searchLabel')}
               placeholder={
                 selectedUser
                   ? ''
                   : favoriteUsers.length > 0 && searchInput.length < 2
-                    ? '⭐ Favorites shown above, type to search more...'
-                    : '🔍 Search by name or email... (min 2 characters)'
+                    ? t('impersonation.searchPlaceholderFavorites')
+                    : t('impersonation.searchPlaceholder')
               }
               slotProps={{
                 input: {
@@ -257,13 +259,15 @@ const UserSearchInput: React.FC<UserSearchInputProps> = ({
               }}
               helperText={
                 selectedUser
-                  ? `Selected: ${selectedUser.internalemailaddress}`
+                  ? t('impersonation.selected', { email: selectedUser.internalemailaddress })
                   : isSearching
-                    ? 'Searching...'
+                    ? t('impersonation.searchingUsers')
                     : searchInput.length >= 2 && searchResults.length === 0 && !isSearching
-                      ? 'No users found. Try a different search term.'
+                      ? t('impersonation.noUsersTryDifferent')
                       : favoriteUsers.length > 0 && searchInput.length < 2
-                        ? `${favoriteUsers.length} favorite user${favoriteUsers.length === 1 ? '' : 's'} available`
+                        ? t('impersonation.favoriteUsersAvailable', {
+                            count: favoriteUsers.length,
+                          })
                         : ''
               }
             />
@@ -420,7 +424,7 @@ const UserSearchInput: React.FC<UserSearchInputProps> = ({
                   // This could be enhanced to show more detailed tips
                 }}
               >
-                Tips
+                {t('impersonation.tipsButton')}
               </Button>
             )
           }
@@ -428,7 +432,7 @@ const UserSearchInput: React.FC<UserSearchInputProps> = ({
           {searchMessage}
           {hasMoreResults && (
             <Typography variant='caption' display='block' sx={{ mt: 1 }}>
-              💡 Tip: Be more specific in your search to see additional results
+              {t('impersonation.tip')}
             </Typography>
           )}
         </Alert>
@@ -450,7 +454,7 @@ const UserSearchInput: React.FC<UserSearchInputProps> = ({
             borderRadius: 1,
           }}
         >
-          🎭 Impersonate
+          {t('impersonation.start')}
         </Button>
       )}
 

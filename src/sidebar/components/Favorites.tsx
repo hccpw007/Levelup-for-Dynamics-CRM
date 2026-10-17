@@ -4,6 +4,7 @@ import { Favorite as HeartIcon, ExpandMore as ExpandMoreIcon } from '@mui/icons-
 import { DynamicsAction } from '#types/global';
 import StandardActionButton, { StandardActionGrid } from '#components/StandardActionButton';
 import { Close as CloseIcon } from '@mui/icons-material';
+import { useLanguage } from '#contexts/LanguageContext';
 
 interface ActionButton {
   id: DynamicsAction;
@@ -25,6 +26,7 @@ const FavoritesComponent: React.FC<FavoritesProps> = ({
   onActionClick,
   onFavoriteToggle,
 }) => {
+  const { t } = useLanguage();
   const [expanded, setExpanded] = React.useState(true);
 
   const handleExpandClick = () => setExpanded(!expanded);
@@ -73,7 +75,7 @@ const FavoritesComponent: React.FC<FavoritesProps> = ({
                 userSelect: 'none',
               }}
             >
-              Favorites
+              {t('section.favorites')}
             </Typography>
             <Chip
               label={favoriteButtons.length}

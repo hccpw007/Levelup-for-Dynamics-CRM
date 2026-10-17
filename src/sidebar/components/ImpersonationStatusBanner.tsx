@@ -1,6 +1,7 @@
 import React from 'react';
 import { Alert, Button, Avatar, Box, Typography } from '@mui/material';
 import { UserToImpersonate } from '#hooks/useImpersonation';
+import { useLanguage } from '#contexts/LanguageContext';
 
 interface ImpersonationStatusBannerProps {
   isImpersonating: boolean;
@@ -13,6 +14,8 @@ const ImpersonationStatusBanner: React.FC<ImpersonationStatusBannerProps> = ({
   impersonatedUser,
   onStopImpersonation,
 }) => {
+  const { t } = useLanguage();
+
   if (!isImpersonating || !impersonatedUser) return null;
 
   return (
@@ -41,21 +44,21 @@ const ImpersonationStatusBanner: React.FC<ImpersonationStatusBannerProps> = ({
             textTransform: 'none',
           }}
         >
-          Stop
+          {t('impersonation.stop')}
         </Button>
       }
     >
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
         <Box>
           <Typography component='span' sx={{ fontWeight: 600, display: 'block' }}>
-            🎭 Impersonating {impersonatedUser.fullname}
+            {t('impersonation.banner', { name: impersonatedUser.fullname })}
           </Typography>
           <Typography
             component='div'
             variant='caption'
             sx={{ opacity: 0.85, color: 'text.secondary' }}
           >
-            Switching, suspending or refreshing tabs might stop impersonation.
+            {t('impersonation.bannerDesc')}
           </Typography>
           <Typography
             component='div'
@@ -67,7 +70,7 @@ const ImpersonationStatusBanner: React.FC<ImpersonationStatusBannerProps> = ({
               mt: 0.5,
             }}
           >
-            Impersonation is NOT a native Dynamics 365/Power Apps feature.
+            {t('impersonation.bannerWarning')}
           </Typography>
         </Box>
       </Box>

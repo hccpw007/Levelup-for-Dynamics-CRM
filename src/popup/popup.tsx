@@ -1,13 +1,31 @@
 import React, { useState, useEffect } from 'react';
 import { createRoot } from 'react-dom/client';
-import { Box, Typography, Link, Skeleton, Alert, CircularProgress } from '@mui/material';
+import {
+  Box,
+  Typography,
+  Link,
+  Skeleton,
+  Alert,
+  CircularProgress,
+  Select,
+  MenuItem,
+} from '@mui/material';
+import { Translate as TranslateIcon } from '@mui/icons-material';
 import { ExtensionConfigService, ExtensionConfig } from '#services/ExtensionConfigService';
 import { checkDynamicsViaXrm, getEnvironmentUrlFromXrm } from '#utils/dynamicsDetection';
 import { DynamicsAction, ExtensionDisplayMode } from '#types/global';
 import { ThemeProvider } from '#contexts/ThemeContext';
-import { formActions, navigationActions, ActionConfig } from '#config/actions';
+import { LanguageProvider, useLanguage } from '#contexts/LanguageContext';
+import { formActions, navigationActions, ActionConfig, localizeActions } from '#config/actions';
+import { Language } from '../sidebar/i18n';
 
 const PopupApp: React.FC = () => {
+  const { language, setLanguage, t } = useLanguage();
+  const localizedFormActions = React.useMemo(() => localizeActions(formActions, t), [t]);
+  const localizedNavigationActions = React.useMemo(
+    () => localizeActions(navigationActions, t),
+    [t]
+  );
   const [extensionConfig, setExtensionConfig] = useState<ExtensionConfig>(
     ExtensionConfigService.getConfig()
   );
@@ -59,23 +77,17 @@ const PopupApp: React.FC = () => {
       let actionData: unknown = undefined;
 
       if (actionId === 'navigation:open-record-by-id') {
-        const recordId = prompt('Enter the record ID (GUID):');
+        const recordId = prompt(t('popup.prompt.recordId'));
         if (!recordId) return; // User cancelled
-        const entityName = prompt(
-          'Enter the entity logical name for the record (e.g., account, contact, opportunity):'
-        );
+        const entityName = prompt(t('popup.prompt.entityName'));
         if (!entityName) return; // User cancelled
         actionData = { recordId: recordId.trim(), entityName: entityName.trim().toLowerCase() };
       } else if (actionId === 'navigation:new-record') {
-        const entityName = prompt(
-          'Enter the entity logical name (e.g., account, contact, opportunity):'
-        );
+        const entityName = prompt(t('popup.prompt.entityLogicalName'));
         if (!entityName) return; // User cancelled
         actionData = { entityName: entityName.trim().toLowerCase() };
       } else if (actionId === 'navigation:open-list') {
-        const entityName = prompt(
-          'Enter the entity logical name (e.g., account, contact, opportunity):'
-        );
+        const entityName = prompt(t('popup.prompt.entityLogicalName'));
         if (!entityName) return; // User cancelled
         actionData = { entityName: entityName.trim().toLowerCase() };
       }
@@ -189,7 +201,7 @@ const PopupApp: React.FC = () => {
             textOverflow: 'ellipsis',
           }}
         >
-          EXPRESS MODE
+          {t('popup.expressMode')}
         </Typography>
       </Box>
 
@@ -215,6 +227,40 @@ const PopupApp: React.FC = () => {
             <CircularProgress size={18} />
           </Box>
         )}
+        {/* Language selection */}
+        <Box
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'flex-end',
+            gap: 0.5,
+            mb: 1,
+          }}
+        >
+          <TranslateIcon sx={{ fontSize: 16, color: 'text.secondary' }} />
+          <Select
+            size='small'
+            value={language}
+            onChange={e => setLanguage(e.target.value as Language)}
+            aria-label={t('language.label')}
+            sx={{
+              fontSize: '0.7rem',
+              height: 28,
+              minWidth: 90,
+              '& .MuiSelect-select': {
+                py: 0.5,
+              },
+            }}
+          >
+            <MenuItem value='en' sx={{ fontSize: '0.75rem' }}>
+              {t('language.english')}
+            </MenuItem>
+            <MenuItem value='zh' sx={{ fontSize: '0.75rem' }}>
+              {t('language.chinese')}
+            </MenuItem>
+          </Select>
+        </Box>
+
         {/* Form Actions */}
         {extensionConfig.showFormSection && (
           <Box sx={{ mb: 1.5 }}>
@@ -230,7 +276,7 @@ const PopupApp: React.FC = () => {
                 opacity: 0.8,
               }}
             >
-              Form Actions
+              {t('section.formActions')}
             </Typography>
             <Box
               sx={{
@@ -247,7 +293,7 @@ const PopupApp: React.FC = () => {
                 alignItems: 'stretch',
               }}
             >
-              {formActions.map((action: ActionConfig) => {
+              {localizedFormActions.map((action: ActionConfig) => {
                 const label = action.label || '';
                 const lowered = label.toLowerCase();
                 const getShort = (text: string) => {
@@ -338,7 +384,7 @@ const PopupApp: React.FC = () => {
                 opacity: 0.8,
               }}
             >
-              Navigation
+              {t('section.navigation')}
             </Typography>
             <Box
               sx={{
@@ -355,7 +401,7 @@ const PopupApp: React.FC = () => {
                 alignItems: 'stretch',
               }}
             >
-              {navigationActions.map((action: ActionConfig) => {
+              {localizedNavigationActions.map((action: ActionConfig) => {
                 const label = action.label || '';
                 const lowered = label.toLowerCase();
                 const short =
@@ -444,7 +490,7 @@ const PopupApp: React.FC = () => {
                 fontWeight: 500,
               }}
             >
-              Sidebar Modes
+              {t('popup.sidebarModes')}
             </Typography>
             <Box sx={{ display: 'flex', justifyContent: 'center', gap: 1.5 }}>
               <Link
@@ -466,7 +512,7 @@ const PopupApp: React.FC = () => {
                   },
                 }}
               >
-                Default
+                {t('popup.default')}
               </Link>
               <Box sx={{ color: 'text.secondary', fontSize: '0.7rem' }}>•</Box>
               <Link
@@ -488,7 +534,7 @@ const PopupApp: React.FC = () => {
                   },
                 }}
               >
-                Simple
+                {t('popup.simple')}
               </Link>
             </Box>
           </Box>
@@ -503,9 +549,11 @@ const container = document.getElementById('popup-root');
 if (container) {
   const root = createRoot(container);
   root.render(
-    <ThemeProvider>
-      <PopupApp />
-    </ThemeProvider>
+    <LanguageProvider>
+      <ThemeProvider>
+        <PopupApp />
+      </ThemeProvider>
+    </LanguageProvider>
   );
 }
 

@@ -9,6 +9,7 @@ import {
   Box,
   Autocomplete,
 } from '@mui/material';
+import { useLanguage } from '#contexts/LanguageContext';
 
 interface EntityOption {
   logicalName: string;
@@ -38,6 +39,7 @@ const InputDialog = ({
   onEntityNameChange,
   onRecordIdChange,
 }: InputDialogProps) => {
+  const { t } = useLanguage();
   const [entities, setEntities] = useState<EntityOption[]>([]);
   const [entitiesLoading, setEntitiesLoading] = useState(false);
 
@@ -142,8 +144,8 @@ const InputDialog = ({
             {...params}
             autoFocus={autoFocus}
             margin='dense'
-            label='Entity Name'
-            placeholder='Start typing or select an entity...'
+            label={t('input.entityName')}
+            placeholder={t('input.entityPlaceholder')}
             fullWidth
             variant='outlined'
           />
@@ -161,8 +163,8 @@ const InputDialog = ({
             {renderEntityField(true)}
             <TextField
               margin='dense'
-              label='Record ID'
-              placeholder='e.g., 12345678-1234-1234-1234-123456789abc'
+              label={t('input.recordId')}
+              placeholder={t('input.recordIdPlaceholder')}
               fullWidth
               variant='outlined'
               value={recordId}
@@ -182,13 +184,13 @@ const InputDialog = ({
   const getSubmitLabel = () => {
     switch (type) {
       case 'open-by-id':
-        return 'Open Record';
+        return t('input.openRecord');
       case 'new-record':
-        return 'Create New';
+        return t('input.createNew');
       case 'open-list':
-        return 'Open List';
+        return t('input.openList');
       default:
-        return 'Submit';
+        return t('input.submit');
     }
   };
 
@@ -212,7 +214,7 @@ const InputDialog = ({
       </DialogContent>
       <DialogActions>
         <Button onClick={onClose} color='inherit'>
-          Cancel
+          {t('common.cancel')}
         </Button>
         <Button onClick={onSubmit} variant='contained' disabled={!isValid()}>
           {getSubmitLabel()}
@@ -223,4 +225,3 @@ const InputDialog = ({
 };
 
 export default InputDialog;
-

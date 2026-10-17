@@ -1,6 +1,7 @@
 import React from 'react';
 import { Box, IconButton, Tooltip, Typography, useTheme, useMediaQuery } from '@mui/material';
 import { Favorite as HeartIcon } from '@mui/icons-material';
+import { useLanguage } from '#contexts/LanguageContext';
 
 export interface StandardActionButtonProps {
   id: string;
@@ -40,6 +41,7 @@ const StandardActionButton: React.FC<StandardActionButtonProps> = ({
 }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const { t } = useLanguage();
 
   return (
     <Box
@@ -127,7 +129,7 @@ const StandardActionButton: React.FC<StandardActionButtonProps> = ({
 
         {/* Favorite toggle button */}
         {showFavorite && onFavoriteToggle && (
-          <Tooltip title={isFavorite ? 'Remove from favorites' : 'Add to favorites'}>
+          <Tooltip title={isFavorite ? t('action.removeFavorite') : t('action.addFavorite')}>
             <IconButton
               size='small'
               onClick={e => {

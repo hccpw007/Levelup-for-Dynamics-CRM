@@ -26,6 +26,8 @@ import {
   Close as CloseIcon,
 } from '@mui/icons-material';
 import releaseNotesData from '#data/release-notes.json';
+import { useLanguage } from '#contexts/LanguageContext';
+import { TranslationKey } from '../i18n';
 import { formActions, debuggingActions, navigationActions } from '../config/actions';
 
 interface ReleaseNotes {
@@ -65,6 +67,7 @@ const TabPanel: React.FC<TabPanelProps> = ({ children, value, index, ...other })
 };
 
 const InformationDialog: React.FC<InformationDialogProps> = ({ open, onClose }) => {
+  const { t } = useLanguage();
   const [tabValue, setTabValue] = useState(0);
   const [stats, setStats] = useState<any>(null);
 
@@ -76,14 +79,16 @@ const InformationDialog: React.FC<InformationDialogProps> = ({ open, onClose }) 
     // Find the action config by ID
     const actionConfig = allActions.find(action => action.id === actionId);
 
-    // Return the label if found, otherwise fall back to formatting the ID
+    // Resolve the localized label, otherwise fall back to formatting the ID
+    if (actionConfig) {
+      return t(`action.${actionConfig.id}.label` as TranslationKey);
+    }
+
     return (
-      actionConfig?.label ||
       actionId
         .split(':')[1]
         ?.replace(/-/g, ' ')
-        .replace(/\b\w/g, l => l.toUpperCase()) ||
-      actionId
+        .replace(/\b\w/g, l => l.toUpperCase()) || actionId
     );
   };
 
@@ -95,10 +100,10 @@ const InformationDialog: React.FC<InformationDialogProps> = ({ open, onClose }) 
     const hours = Math.floor(diff / (1000 * 60 * 60));
     const days = Math.floor(diff / (1000 * 60 * 60 * 24));
 
-    if (days > 0) return `${days}d ago`;
-    if (hours > 0) return `${hours}h ago`;
-    if (minutes > 0) return `${minutes}m ago`;
-    return 'just now';
+    if (days > 0) return t('recently.daysAgo', { count: days });
+    if (hours > 0) return t('recently.hoursAgo', { count: hours });
+    if (minutes > 0) return t('recently.minutesAgo', { count: minutes });
+    return t('recently.justNow');
   };
 
   // Load stats from localStorage
@@ -234,7 +239,7 @@ const InformationDialog: React.FC<InformationDialogProps> = ({ open, onClose }) 
         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
             <InfoIcon color='primary' />
-            <Typography variant='h6'>About</Typography>
+            <Typography variant='h6'>{t('info.about')}</Typography>
           </Box>
           <IconButton
             onClick={onClose}
@@ -253,9 +258,9 @@ const InformationDialog: React.FC<InformationDialogProps> = ({ open, onClose }) 
 
       <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
         <Tabs value={tabValue} onChange={handleTabChange} aria-label='information tabs'>
-          <Tab label='Release Notes' />
-          <Tab label='About' />
-          <Tab label='Stats for Nerds' />
+          <Tab label={t('info.tabs.releaseNotes')} />
+          <Tab label={t('info.tabs.about')} />
+          <Tab label={t('info.tabs.stats')} />
         </Tabs>
       </Box>
 
@@ -266,11 +271,12 @@ const InformationDialog: React.FC<InformationDialogProps> = ({ open, onClose }) 
               {releaseNotesData.title}
             </Typography>
             <Typography variant='body2' color='text.secondary' sx={{ mb: 3 }}>
-              Built:{' '}
-              {new Date(releaseNotesData.builtDate).toLocaleDateString(undefined, {
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric',
+              {t('info.built', {
+                date: new Date(releaseNotesData.builtDate).toLocaleDateString(undefined, {
+                  year: 'numeric',
+                  month: 'long',
+                  day: 'numeric',
+                }),
               })}
             </Typography>
 
@@ -306,7 +312,7 @@ const InformationDialog: React.FC<InformationDialogProps> = ({ open, onClose }) 
               />
 
               <Typography variant='body1' sx={{ mb: 1.5, fontWeight: 400 }}>
-                Made with 💗 by Natraj
+                {t('info.madeWith')}
               </Typography>
 
               <Box
@@ -340,11 +346,11 @@ const InformationDialog: React.FC<InformationDialogProps> = ({ open, onClose }) 
                 rel='noopener noreferrer'
                 sx={{ textTransform: 'none', fontSize: '0.9rem', mb: 1.5 }}
               >
-                My GitHub
+                {t('info.myGitHub')}
               </Button>
 
               <Typography variant='body1' sx={{ color: 'text.secondary', fontStyle: 'italic' }}>
-                Thank you for using Level Up!
+                {t('info.thanks')}
               </Typography>
             </Box>
           </Box>
@@ -358,13 +364,12 @@ const InformationDialog: React.FC<InformationDialogProps> = ({ open, onClose }) 
                 sx={{ mb: 1, display: 'flex', alignItems: 'center', gap: 1 }}
               >
                 <CodeIcon color='primary' />
-                Action Statistics
+                {t('info.statsTitle')}
               </Typography>
               <Alert severity='info' sx={{ mb: 2 }}>
                 <Typography variant='body2'>
                   <SecurityIcon sx={{ fontSize: '1rem', mr: 0.5, verticalAlign: 'middle' }} />
-                  All statistics are stored locally on your device and are never transmitted or
-                  shared.
+                  {t('info.privacy')}
                 </Typography>
               </Alert>
             </Box>
@@ -392,7 +397,7 @@ const InformationDialog: React.FC<InformationDialogProps> = ({ open, onClose }) 
                           {stats.totalUsage}
                         </Typography>
                         <Typography variant='caption' sx={{ fontSize: '0.7rem', opacity: 0.9 }}>
-                          Total Actions
+                          {t('info.totalActions')}
                         </Typography>
                       </CardContent>
                     </Card>
@@ -416,7 +421,7 @@ const InformationDialog: React.FC<InformationDialogProps> = ({ open, onClose }) 
                           {stats.uniqueActions}
                         </Typography>
                         <Typography variant='caption' sx={{ fontSize: '0.7rem', opacity: 0.9 }}>
-                          Unique Actions
+                          {t('info.uniqueActions')}
                         </Typography>
                       </CardContent>
                     </Card>
@@ -440,7 +445,7 @@ const InformationDialog: React.FC<InformationDialogProps> = ({ open, onClose }) 
                           {stats.avgUsagePerWeek}
                         </Typography>
                         <Typography variant='caption' sx={{ fontSize: '0.7rem', opacity: 0.9 }}>
-                          Avg/Week
+                          {t('info.avgPerWeek')}
                         </Typography>
                       </CardContent>
                     </Card>
@@ -462,7 +467,7 @@ const InformationDialog: React.FC<InformationDialogProps> = ({ open, onClose }) 
                         }}
                       >
                         <TrendingUpIcon color='primary' fontSize='small' />
-                        Most Popular Actions
+                        {t('info.mostPopular')}
                       </Typography>
                       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
                         {stats.topActions.map((action: any, index: number) => (
@@ -545,7 +550,7 @@ const InformationDialog: React.FC<InformationDialogProps> = ({ open, onClose }) 
               </>
             ) : (
               <Box sx={{ textAlign: 'center', py: 4 }}>
-                <Typography color='text.secondary'>Loading statistics...</Typography>
+                <Typography color='text.secondary'>{t('info.loadingStats')}</Typography>
               </Box>
             )}
           </Box>
@@ -554,7 +559,7 @@ const InformationDialog: React.FC<InformationDialogProps> = ({ open, onClose }) 
 
       <DialogActions sx={{ px: 3, py: 2 }}>
         <Button onClick={onClose} variant='contained' sx={{ minWidth: 100 }}>
-          Close
+          {t('info.close')}
         </Button>
       </DialogActions>
     </Dialog>

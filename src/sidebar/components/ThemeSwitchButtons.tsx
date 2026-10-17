@@ -1,10 +1,12 @@
 import React from 'react';
 import { useTheme } from '#contexts/ThemeContext';
+import { useLanguage } from '#contexts/LanguageContext';
 import { Button, ButtonGroup, Tooltip } from '@mui/material';
 import { LightMode, DarkMode } from '@mui/icons-material';
 
 const ThemeSwitchButtons: React.FC = () => {
   const { mode, toggleTheme } = useTheme();
+  const { t } = useLanguage();
   return (
     <ButtonGroup
       variant='outlined'
@@ -35,22 +37,22 @@ const ThemeSwitchButtons: React.FC = () => {
         },
       }}
     >
-      <Tooltip title='Switch to light mode' arrow placement='top'>
+      <Tooltip title={t('theme.light')} arrow placement='top'>
         <Button
           onClick={() => mode !== 'light' && toggleTheme()}
           variant={mode === 'light' ? 'contained' : 'outlined'}
           sx={{ borderRadius: '20px 0 0 20px' }}
-          aria-label='Switch to light mode'
+          aria-label={t('theme.light')}
         >
           <LightMode fontSize='small' />
         </Button>
       </Tooltip>
-      <Tooltip title='Switch to dark mode' arrow placement='top'>
+      <Tooltip title={t('theme.dark')} arrow placement='top'>
         <Button
           onClick={() => mode !== 'dark' && toggleTheme()}
           variant={mode === 'dark' ? 'contained' : 'outlined'}
           sx={{ borderRadius: '0 20px 20px 0' }}
-          aria-label='Switch to dark mode'
+          aria-label={t('theme.dark')}
         >
           <DarkMode fontSize='small' />
         </Button>

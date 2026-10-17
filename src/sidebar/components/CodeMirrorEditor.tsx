@@ -17,6 +17,7 @@ import {
 } from '@codemirror/autocomplete';
 import { Box, Typography, LinearProgress, Alert } from '@mui/material';
 import { useTheme } from '#contexts/ThemeContext';
+import { useLanguage } from '#contexts/LanguageContext';
 import { filterCompletions, getContextualCompletions } from './xrm-completions';
 
 interface CodeMirrorEditorProps {
@@ -33,7 +34,7 @@ interface CodeMirrorEditorProps {
 const CodeMirrorEditorComponent: React.FC<CodeMirrorEditorProps> = ({
   value,
   onChange,
-  placeholder = '// Write your JavaScript code here...\n// Type "Xrm" to see available API methods\n// Press Ctrl+Space for autocomplete',
+  placeholder,
   maxLines = 500,
   readOnly = false,
   height = '400px',
@@ -41,6 +42,8 @@ const CodeMirrorEditorComponent: React.FC<CodeMirrorEditorProps> = ({
   onValidation,
 }) => {
   const { isDarkMode } = useTheme();
+  const { t } = useLanguage();
+  const resolvedPlaceholder = placeholder ?? t('editor.placeholder');
   const [lineCount, setLineCount] = useState(0);
   const [validationErrors, setValidationErrors] = useState<string[]>([]);
   const [validationWarnings, setValidationWarnings] = useState<string[]>([]);
@@ -156,7 +159,7 @@ const CodeMirrorEditorComponent: React.FC<CodeMirrorEditorProps> = ({
           from: 0,
           to: code.length,
           severity: 'error',
-          message: braceCount > 0 ? 'Missing closing brace(s)' : 'Extra closing brace(s)',
+          message: braceCount > 0 ? t('editor.diag.missingBrace') : t('editor.diag.extraBrace'),
         });
       }
 
@@ -165,7 +168,7 @@ const CodeMirrorEditorComponent: React.FC<CodeMirrorEditorProps> = ({
           from: 0,
           to: code.length,
           severity: 'error',
-          message: parenCount > 0 ? 'Missing closing parenthesis' : 'Extra closing parenthesis',
+          message: parenCount > 0 ? t('editor.diag.missingParen') : t('editor.diag.extraParen'),
         });
       }
 
@@ -174,19 +177,20 @@ const CodeMirrorEditorComponent: React.FC<CodeMirrorEditorProps> = ({
           from: 0,
           to: code.length,
           severity: 'error',
-          message: bracketCount > 0 ? 'Missing closing bracket(s)' : 'Extra closing bracket(s)',
+          message:
+            bracketCount > 0 ? t('editor.diag.missingBracket') : t('editor.diag.extraBracket'),
         });
       }
 
       // Check for dangerous patterns
       const dangerousPatterns = [
-        { pattern: /eval\s*\(/g, message: 'eval() function usage detected' },
-        { pattern: /Function\s*\(/g, message: 'Function constructor usage detected' },
-        { pattern: /setTimeout\s*\(/g, message: 'setTimeout() usage detected' },
-        { pattern: /setInterval\s*\(/g, message: 'setInterval() usage detected' },
-        { pattern: /document\.write/g, message: 'document.write() usage detected' },
-        { pattern: /innerHTML\s*=/g, message: 'innerHTML assignment detected' },
-        { pattern: /outerHTML\s*=/g, message: 'outerHTML assignment detected' },
+        { pattern: /eval\s*\(/g, message: t('editor.diag.eval') },
+        { pattern: /Function\s*\(/g, message: t('editor.diag.functionCtor') },
+        { pattern: /setTimeout\s*\(/g, message: t('editor.diag.setTimeout') },
+        { pattern: /setInterval\s*\(/g, message: t('editor.diag.setInterval') },
+        { pattern: /document\.write/g, message: t('editor.diag.documentWrite') },
+        { pattern: /innerHTML\s*=/g, message: t('editor.diag.innerHtml') },
+        { pattern: /outerHTML\s*=/g, message: t('editor.diag.outerHtml') },
       ];
 
       dangerousPatterns.forEach(({ pattern, message }) => {
@@ -196,14 +200,14 @@ const CodeMirrorEditorComponent: React.FC<CodeMirrorEditorProps> = ({
             from: match.index,
             to: match.index + match[0].length,
             severity: 'warning',
-            message: `Potentially unsafe pattern: ${message}`,
+            message: t('editor.diag.unsafe', { message }),
           });
         }
       });
 
       return diagnostics;
     });
-  }, []);
+  }, [t]);
 
   // CodeMirror extensions
   const extensions = [
@@ -347,23 +351,23 @@ const CodeMirrorEditorComponent: React.FC<CodeMirrorEditorProps> = ({
 
     // Check line count
     if (lines.length > maxLines) {
-      errors.push(`Code exceeds maximum of ${maxLines} lines (current: ${lines.length})`);
+      errors.push(t('editor.diag.maxLines', { max: maxLines, current: lines.length }));
     }
 
     // Check for potentially dangerous patterns
     const dangerousPatterns = [
-      { pattern: /eval\s*\(/, message: 'eval() function usage detected' },
-      { pattern: /Function\s*\(/, message: 'Function constructor usage detected' },
-      { pattern: /setTimeout\s*\(/, message: 'setTimeout() usage detected' },
-      { pattern: /setInterval\s*\(/, message: 'setInterval() usage detected' },
-      { pattern: /document\.write/, message: 'document.write() usage detected' },
-      { pattern: /innerHTML\s*=/, message: 'innerHTML assignment detected' },
-      { pattern: /outerHTML\s*=/, message: 'outerHTML assignment detected' },
+      { pattern: /eval\s*\(/, message: t('editor.diag.eval') },
+      { pattern: /Function\s*\(/, message: t('editor.diag.functionCtor') },
+      { pattern: /setTimeout\s*\(/, message: t('editor.diag.setTimeout') },
+      { pattern: /setInterval\s*\(/, message: t('editor.diag.setInterval') },
+      { pattern: /document\.write/, message: t('editor.diag.documentWrite') },
+      { pattern: /innerHTML\s*=/, message: t('editor.diag.innerHtml') },
+      { pattern: /outerHTML\s*=/, message: t('editor.diag.outerHtml') },
     ];
 
     dangerousPatterns.forEach(({ pattern, message }) => {
       if (pattern.test(value)) {
-        warnings.push(`Potentially unsafe pattern: ${message}`);
+        warnings.push(t('editor.diag.unsafe', { message }));
       }
     });
 
@@ -373,7 +377,7 @@ const CodeMirrorEditorComponent: React.FC<CodeMirrorEditorProps> = ({
     if (onValidation) {
       onValidation(errors, warnings);
     }
-  }, [value, maxLines]);
+  }, [value, maxLines, t]);
 
   const handleChange = useCallback(
     (val: string) => {
@@ -393,7 +397,7 @@ const CodeMirrorEditorComponent: React.FC<CodeMirrorEditorProps> = ({
       {/* Header with line count and validation status */}
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
         <Typography variant='subtitle2' sx={{ color: 'text.secondary' }}>
-          JavaScript Code Editor
+          {t('editor.codeEditor')}
         </Typography>
         {showLineCount && (
           <Typography
@@ -404,7 +408,7 @@ const CodeMirrorEditorComponent: React.FC<CodeMirrorEditorProps> = ({
               fontWeight: lineCount > maxLines ? 'bold' : 'normal',
             }}
           >
-            {lineCount} / {maxLines} lines
+            {t('editor.lines', { current: lineCount, max: maxLines })}
           </Typography>
         )}
       </Box>
@@ -513,7 +517,7 @@ const CodeMirrorEditorComponent: React.FC<CodeMirrorEditorProps> = ({
           theme={isDarkMode ? oneDark : 'light'}
           extensions={extensions}
           onChange={handleChange}
-          placeholder={placeholder}
+          placeholder={resolvedPlaceholder}
           readOnly={readOnly}
           basicSetup={{
             highlightActiveLine: true,

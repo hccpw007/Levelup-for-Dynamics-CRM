@@ -1,4 +1,5 @@
 import { DynamicsAction } from '#types/global';
+import { TFunction, TranslationKey } from '../i18n';
 import {
   Tag as TagIcon,
   CleaningServices as CleanIcon,
@@ -48,6 +49,24 @@ export interface ActionConfig {
   // Optional short label and short icon (emoji or short text) for compact UIs like popup
   shortLabel?: string;
   shortIcon?: string;
+}
+
+/**
+ * Action configuration with labels resolved for the active language
+ */
+export type LocalizedActionConfig = ActionConfig;
+
+/**
+ * Resolve action labels and tooltips for the active language.
+ * Translation keys follow the `action.<action id>.<part>` convention.
+ */
+export function localizeActions(actions: ActionConfig[], t: TFunction): LocalizedActionConfig[] {
+  return actions.map(action => ({
+    ...action,
+    label: t(`action.${action.id}.label` as TranslationKey),
+    tooltip: t(`action.${action.id}.tooltip` as TranslationKey),
+    shortLabel: action.shortLabel ? t(`action.${action.id}.short` as TranslationKey) : undefined,
+  }));
 }
 
 export const formActions: ActionConfig[] = [

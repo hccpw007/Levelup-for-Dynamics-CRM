@@ -16,6 +16,7 @@ import {
   Check as CheckIcon,
 } from '@mui/icons-material';
 import { ExtensionDisplayMode } from '#types/global';
+import { useLanguage } from '#contexts/LanguageContext';
 
 interface ExtendedDisplayModeSelectorProps {
   currentMode: ExtensionDisplayMode;
@@ -24,13 +25,13 @@ interface ExtendedDisplayModeSelectorProps {
 
 const DISPLAY_MODE_CONFIG = {
   default: {
-    label: 'Default',
-    description: 'All features visible',
+    labelKey: 'settings.default',
+    descriptionKey: 'settings.defaultDesc',
     icon: DefaultIcon,
   },
   simple: {
-    label: 'Simple',
-    description: 'Essential features only',
+    labelKey: 'settings.simple',
+    descriptionKey: 'settings.simpleDesc',
     icon: SimpleIcon,
   },
 } as const;
@@ -39,6 +40,7 @@ const ExtendedDisplayModeSelector: React.FC<ExtendedDisplayModeSelectorProps> = 
   currentMode,
   onModeChange,
 }) => {
+  const { t } = useLanguage();
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const open = Boolean(anchorEl);
 
@@ -56,11 +58,11 @@ const ExtendedDisplayModeSelector: React.FC<ExtendedDisplayModeSelectorProps> = 
 
   return (
     <>
-      <Tooltip title='Switch Sidebar Modes'>
+      <Tooltip title={t('settings.switchModes')}>
         <IconButton
           onClick={handleClick}
           size='small'
-          aria-label='Switch Sidebar Modes'
+          aria-label={t('settings.switchModes')}
           sx={{
             color: 'text.primary',
             '&:hover': {
@@ -106,7 +108,7 @@ const ExtendedDisplayModeSelector: React.FC<ExtendedDisplayModeSelectorProps> = 
             fontSize: '0.7rem',
           }}
         >
-          Display Mode
+          {t('settings.displayMode')}
         </Typography>
         <Divider />
 
@@ -152,8 +154,8 @@ const ExtendedDisplayModeSelector: React.FC<ExtendedDisplayModeSelectorProps> = 
                 <IconComponent fontSize='small' />
               </ListItemIcon>
               <ListItemText
-                primary={config.label}
-                secondary={config.description}
+                primary={t(config.labelKey)}
+                secondary={t(config.descriptionKey)}
                 sx={{
                   '& .MuiListItemText-primary': {
                     color: isSelected ? 'inherit' : 'text.primary',
