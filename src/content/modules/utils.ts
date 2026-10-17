@@ -507,18 +507,15 @@ export class DynamicsUtils {
         clickableSpan.className = 'levelup-logical-name';
         clickableSpan.style.cssText = `
           cursor: pointer;
-          border: 1px solid #7b277a;
-          border-radius: 4px;
-          padding: 2px 8px;
-          margin-top: 2px;
-          font-size: 14px;
+          padding: 0;
+          margin-top: 1px;
+          font-size: 12px;
           font-family: 'SegoeUI', 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
           font-weight: 600;
           text-decoration: none;
           display: block;
           width: fit-content;
-          transition: all 0.2s ease;
-          box-shadow: 0 1px 2px rgba(99, 14, 96, 0.2);
+          transition: color 0.2s ease;
           line-height: 1.2;
           text-align: left;
         `
@@ -529,19 +526,17 @@ export class DynamicsUtils {
 
         // Add hover and active states
         clickableSpan.addEventListener('mouseenter', () => {
-          clickableSpan.style.borderColor = '#8e3d8b';
-          clickableSpan.style.transform = 'translateY(-1px)';
-          clickableSpan.style.boxShadow = '0 2px 6px rgba(99, 14, 96, 0.3)';
+          clickableSpan.style.color = '#7b277a';
+          clickableSpan.style.textDecoration = 'underline';
         });
 
         clickableSpan.addEventListener('mouseleave', () => {
-          clickableSpan.style.borderColor = '#7b277a';
-          clickableSpan.style.transform = 'translateY(0)';
-          clickableSpan.style.boxShadow = '0 1px 2px rgba(99, 14, 96, 0.2)';
+          clickableSpan.style.color = '';
+          clickableSpan.style.textDecoration = 'none';
+          clickableSpan.style.backgroundColor = '';
         });
 
         clickableSpan.addEventListener('mousedown', () => {
-          clickableSpan.style.transform = 'translateY(0px)';
           clickableSpan.style.color = '#ffffff';
           clickableSpan.style.backgroundColor = '#4e0b4c';
         });
@@ -597,7 +592,6 @@ export class DynamicsUtils {
 
             clickableSpan.textContent = '✓ Copied!';
             clickableSpan.style.backgroundColor = '#107c10 !important';
-            clickableSpan.style.borderColor = '#107c10 !important';
             clickableSpan.style.color = '#ffffff !important';
             clickableSpan.style.fontWeight = 'bold !important';
             clickableSpan.style.transform = 'scale(1.1)';
@@ -636,7 +630,6 @@ export class DynamicsUtils {
 
             clickableSpan.textContent = '✗ Failed';
             clickableSpan.style.backgroundColor = '#d83b01 !important';
-            clickableSpan.style.borderColor = '#d83b01 !important';
             clickableSpan.style.color = '#ffffff !important';
             clickableSpan.style.fontWeight = 'bold !important';
             clickableSpan.style.transform = 'scale(1.1)';
